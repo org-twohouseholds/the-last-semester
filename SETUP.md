@@ -1,5 +1,7 @@
 # The Last Semester – Einrichtung für neue Teammitglieder
 
+> 💡 **Tipp:** Für eine übersichtliche Darstellung öffne diese Datei in IntelliJ über den Projektbaum (Doppelklick auf `SETUP.md`) und wähle oben rechts **Preview**. So siehst du die fertig formatierte Anleitung statt des Markdown-Codes.
+
 **Eine Anleitung für Windows, macOS und Linux.** Wir verwenden IntelliJ IDEA, Java 17 und den im Projekt enthaltenen Gradle Wrapper. **Gradle und libGDX werden nicht separat installiert.**
 
 **Was muss ich einrichten?**
@@ -20,7 +22,7 @@
 
 ## 2. Repository klonen und in IntelliJ öffnen
 
-**Wichtig:** Bei uns schlug „Clone Repository“ direkt in IntelliJ mit `Repository not found` fehl, obwohl wir Zugriff auf GitHub hatten. **Der Clone über das Terminal funktionierte** – deshalb verwenden wir diesen Weg.
+**Wichtig:** Bei uns schlug „Clone Repository“ direkt in IntelliJ mit `Repository not found` mehrmals fehl, obwohl wir Zugriff auf GitHub hatten. **Der Clone über das Terminal funktionierte** – deshalb verwenden wir diesen Weg.
 
 1. Öffne ein Terminal:
    - **macOS:** App **Terminal** öffnen (über Spotlight).
@@ -89,7 +91,11 @@ Bei uns waren auf verschiedenen Rechnern Java 17 und Java 24 vorhanden. Für die
 - `lwjgl3` = das **Desktop-Modul** von libGDX für Windows, macOS und Linux.
 - `run` = startet die Desktop-Anwendung.
 
-**Erwartetes Ergebnis:** Ein Fenster „The Last Semester“ mit dem bisherigen libGDX-Startbildschirm. Es ist noch kein fertiges Spiel. Solange das Fenster geöffnet ist, bleibt Gradles `run`-Task aktiv – auch wenn die Fortschrittsanzeige bei etwa 90 % steht. **Fenster schließen**, um die Ausführung zu beenden.
+**Erwartetes Ergebnis:** Das Fenster „The Last Semester“ öffnet sich und zeigt den bisherigen libGDX-Startbildschirm. Das Spiel läuft jetzt erfolgreich.
+
+**Hinweis:** Die Gradle-Fortschrittsanzeige kann währenddessen bei etwa 90 % stehen bleiben. Das ist normal, da der `run`-Task aktiv bleibt, solange das Spiel läuft.
+
+**Zum Beenden:** Einfach das Spielfenster schließen. Gradle beendet den `run`-Task anschließend automatisch.
 
 Beim ersten Start können Downloads (Gradle/Bibliotheken) länger dauern. Sie werden für weitere Builds lokal zwischengespeichert.
 
@@ -227,4 +233,4 @@ Danach Desktop mit `lwjgl3:run` neu starten oder auf Android mit `android:instal
 
 ---
 
-**Stand der Team-Tests (04.11.2026):** Desktop-Start auf macOS und Linux, Android-APK-Build auf macOS, Installation und App-Start im Android-Emulator (M1), erfolgreiche GitHub-Actions-Läufe mit APK-Artefakt. Windows-Setup wurde noch nicht von uns praktisch bestätigt. Dies ist eine **Entwicklungsanleitung**, keine Anleitung zur Play-Store-Veröffentlichung.
+**Stand der Team-Tests (04.11.2026):** Desktop-Start auf macOS und Linux, Android-APK-Build auf macOS, Installation und App-Start im Android-Emulator (M1), erfolgreiche GitHub-Actions-Läufe mit APK-Artefakt. Windows-Setup wurde noch nicht von uns praktisch bestätigt.
