@@ -4,6 +4,17 @@ A [libGDX](https://libgdx.com/) project generated with [gdx-liftoff](https://git
 
 This project was generated with a template including simple application launchers and an `ApplicationAdapter` extension that draws libGDX logo.
 
+## Licensing
+
+Original contributions to The Last Semester are **all rights reserved**; see
+[LICENSE](LICENSE). Public availability does not grant an open-source licence.
+GitHub's Terms of Service still permit viewing and forking a public repository
+on GitHub.
+
+Third-party code, generated boilerplate, and default graphics retain their own
+licences. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and
+[LICENSES/](LICENSES/) for their attributions and licence text.
+
 ## Platforms
 
 - `core`: Main module with the application logic shared by all platforms.
