@@ -1,0 +1,21 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes" # root not needed
+      MYSQL_DATABASE: the_last_semester
+      MYSQL_USER: user
+      MYSQL_PASSWORD_FILE: /run/secrets/db_pw
+    secrets:
+      - db_pw
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  db_data: # use default settings
+
+secrets:
+  db_pw:
+    file: secrets/db_pw
