@@ -1,4 +1,5 @@
 services:
+
   db:
     image: mysql:8.4
     restart: unless-stopped
@@ -12,6 +13,23 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    logging:
+      driver: local # activate log rotation to avoid full disk
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1
+      interval: 5s
+      retries: 60
+
+  server:
+    build: .
+    restart: unless-stopped
+    secrets:
+      - db_pw
+    depends_on:
+      db:
+        condition: service_healthy
+    logging:
+      driver: local # activate log rotation to avoid full disk
 
 volumes:
   db_data: # use default settings
