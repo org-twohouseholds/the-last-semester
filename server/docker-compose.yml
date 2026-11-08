@@ -29,10 +29,24 @@ services:
       db:
         condition: service_healthy
     logging:
-      driver: local # activate log rotation to avoid full disk
+      driver: local
+
+  proxy:
+    image: caddy:2.11
+    restart: unless-stopped
+    ports:
+      - "443:443" # HTTPS
+    volumes:
+      - caddy_data:/data
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - app
+    logging:
+      driver: local
 
 volumes:
   db_data: # use default settings
+  caddy_data: # use default settings
 
 secrets:
   db_pw:
