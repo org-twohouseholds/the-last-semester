@@ -11,5 +11,5 @@ if [ ! -s secrets/db_pw ]; then # db_pw non-existent or empty
   exit 1
 fi
 
-../gradlew :server:installDist
+../gradlew :server:app:installDist
 docker compose up --build

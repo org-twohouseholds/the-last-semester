@@ -20,8 +20,8 @@ services:
       interval: 5s
       retries: 60
 
-  server:
-    build: .
+  app:
+    build: app
     restart: unless-stopped
     secrets:
       - db_pw
