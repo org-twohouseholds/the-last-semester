@@ -1,5 +1,6 @@
 package com.extracreditstudios.thelastsemester.server;
 
+import com.extracreditstudios.thelastsemester.server.db.AccountStore;
 import com.extracreditstudios.thelastsemester.server.security.Passwords;
 import com.extracreditstudios.thelastsemester.server.security.SessionTokens;
 import com.extracreditstudios.thelastsemester.server.shared.Protocol;
@@ -8,16 +9,12 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import io.javalin.Javalin;
-import io.javalin.http.ConflictResponse;
 import io.javalin.http.Context;
 import io.javalin.http.HttpResponseException;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLIntegrityConstraintViolationException;
 
 public class Server {
 
@@ -46,31 +43,11 @@ public class Server {
 
     private static void setupRegister(Javalin server, HikariDataSource ds) {
         server.post("/auth/register", ctx -> {
-            Register.Request request = ctx.bodyValidator(Register.Request.class)
-                .check(r -> r.username() != null && r.username().matches("[A-Za-z0-9_]{3,20}"),
-                    "Username must be 3-20 characters: letters, digits, _")
-                .check(r -> r.password() != null && r.password().length() >= 15 &&
-                    r.password().length() <= 128, "Password must be 15-128 characters")
-                .get();
+            Register.Request request = Register.validateRequest(ctx);
             String password_hash = Passwords.hash(request.password());
             String session_token = SessionTokens.newToken();
             String session_token_hash = SessionTokens.hash(session_token);
-            try (Connection c = ds.getConnection();
-                 PreparedStatement ps = c.prepareStatement(
-                     "INSERT INTO account (username, password_hash, session_token_hash) VALUES " +
-                         "(?, ?, ?)")) {
-                ps.setString(1, request.username());
-                ps.setString(2, password_hash);
-                ps.setString(3, session_token_hash);
-                ps.executeUpdate();
-            } catch (SQLIntegrityConstraintViolationException e) {
-                if (e.getErrorCode() == 1062) { // duplicate key
-                    if (e.getMessage().contains("uq_account_username")) {
-                        throw new ConflictResponse("Username already taken");
-                    }
-                }
-                throw e; // session token collision (very unlikely) only fails one request
-            }
+            AccountStore.createAccount(ds, request.username(), password_hash, session_token_hash);
             ctx.json(new Register.Response(session_token));
             ctx.status(201);
         });
