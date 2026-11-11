@@ -63,7 +63,7 @@ public class HomeScreen extends BaseScreen {
                 .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();
 
         root.add(button("Character",
-                        () -> game.goTo(new PlaceholderScreen(game, "Character"))))
+                        () -> game.goTo(new CharacterSelectionScreen())))
                 .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();
 
         root.add(button("Settings",
