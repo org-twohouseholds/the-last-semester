@@ -1,15 +1,28 @@
 package com.extracreditstudios.thelastsemester.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Net;
+import com.badlogic.gdx.net.HttpRequestBuilder;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Timer;
+import com.badlogic.gdx.utils.JsonValue;
+import com.badlogic.gdx.utils.JsonWriter;
 import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 
-/** Register-Screen */
+/** Register-Screen: Eingabe -> Server-Anfrage -> Ergebnis anzeigen. */
 public class RegisterScreen extends BaseScreen {
+
+    // Server-Adresse für die Registrierung (vom Server-Team)
+    private static final String REGISTER_URL = "https://the-last-semester.twohouseholds.com/auth/register";
+
+    // Muss exakt Protocol.VERSION auf dem Server entsprechen, sonst antwortet der Server mit 426
+    private static final String PROTOCOL_VERSION = "1.0.0";
+
+    // Feldnamen wie in Register.Request(String username, String password) auf dem Server
+    private static final String FIELD_USERNAME = "username";
+    private static final String FIELD_PASSWORD = "password";
 
     private TextField usernameField;
     private TextField passwordField;
@@ -34,6 +47,7 @@ public class RegisterScreen extends BaseScreen {
         passwordField.setMessageText("Password");
         passwordField.setPasswordMode(true); // Eingabe verdeckt
         passwordField.setPasswordCharacter('*');
+        passwordField.setMaxLength(128);
 
         registerButton = button("Register", this::onRegisterPressed);
 
@@ -51,13 +65,17 @@ public class RegisterScreen extends BaseScreen {
         stage.setKeyboardFocus(usernameField); // Cursor direkt im Namensfeld
     }
 
-    /** Prüft die Eingaben und startet die Anfrage. */
+    /** Prüft Eingaben und startet die Anfrage. */
     private void onRegisterPressed() {
         String username = usernameField.getText().trim();
         String password = passwordField.getText();
 
-        if (username.isEmpty() || password.isEmpty()) {
-            statusLabel.setText("Bitte Name und Passwort eingeben");
+        if (!username.matches("[A-Za-z0-9_]{3,20}")) {
+            statusLabel.setText("Name: 3-20 Zeichen, nur Buchstaben, Zahlen und _");
+            return;
+        }
+        if (password.length() < 15 || password.length() > 128) {
+            statusLabel.setText("Passwort: mindestens 15 Zeichen");
             return;
         }
 
@@ -66,18 +84,56 @@ public class RegisterScreen extends BaseScreen {
         sendRegisterRequest(username, password);
     }
 
-    // TODO (Server-Team): echten API-Aufruf einbauen und danach onRegisterResult(...) aufrufen.
+    /** Schickt Name + Passwort als JSON an den Server und wertet die Antwort aus. */
     private void sendRegisterRequest(String username, String password) {
-        // Platzhalter: simuliert nach 1 Sekunde eine erfolgreiche Server-Antwort
-        Timer.schedule(new Timer.Task() {
+        // JSON-Inhalt bauen
+        JsonValue body = new JsonValue(JsonValue.ValueType.object);
+        body.addChild(FIELD_USERNAME, new JsonValue(username));
+        body.addChild(FIELD_PASSWORD, new JsonValue(password));
+
+        // Anfrage zusammenbauen: POST an die Register-Adresse
+        Net.HttpRequest request = new HttpRequestBuilder().newRequest()
+            .method(Net.HttpMethods.POST)
+            .url(REGISTER_URL)
+            .header("Content-Type", "application/json")
+            .header("protocol-version", PROTOCOL_VERSION) // Server prüft die Protokoll-Version
+            .content(body.toJson(JsonWriter.OutputType.json))
+            .timeout(10000) // nach 10 Sekunden aufgeben
+            .build();
+
+        // Abschicken; die Antwort kommt später in einem anderen Thread an
+        Gdx.net.sendHttpRequest(request, new Net.HttpResponseListener() {
             @Override
-            public void run() {
-                onRegisterResult(true, "Konto erstellt! (Test ohne Server)");
+            public void handleHttpResponse(Net.HttpResponse response) {
+                int code = response.getStatus().getStatusCode();
+                Gdx.app.log("Register", "Antwort " + code + ": " + response.getResultAsString());
+                if (code == 200 || code == 201) {
+                    onRegisterResult(true, "Konto erstellt!");
+                } else if (code == 409) {
+                    onRegisterResult(false, "Name schon vergeben");
+                } else if (code == 400) {
+                    onRegisterResult(false, "Ungültige Eingabe");
+                } else if (code == 426) {
+                    onRegisterResult(false, "Bitte Spiel aktualisieren (Protokoll-Version)");
+                } else {
+                    onRegisterResult(false, "Serverfehler (" + code + ")");
+                }
             }
-        }, 1f);
+
+            @Override
+            public void failed(Throwable t) {
+                Gdx.app.error("Register", "Keine Verbindung", t);
+                onRegisterResult(false, "Keine Verbindung zum Server");
+            }
+
+            @Override
+            public void cancelled() {
+                onRegisterResult(false, "Anfrage abgebrochen");
+            }
+        });
     }
 
-    /** Zeigt das Ergebnis an */
+    /** Zeigt das Ergebnis an, darf aus jedem Thread aufgerufen werden */
     public void onRegisterResult(boolean success, String message) {
         Gdx.app.postRunnable(() -> { // zurück in den UI-Thread
             statusLabel.setText((success ? "Erfolg: " : "Fehler: ") + message);
@@ -85,7 +141,7 @@ public class RegisterScreen extends BaseScreen {
         });
     }
 
-    /** Zurück zum Homescreen. */
+    /** Zurück zum Homescreen */
     @Override
     protected void onBack() {
         game.goTo(new HomeScreen(game));
