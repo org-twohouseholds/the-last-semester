@@ -33,29 +33,23 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       # Report-only: findings do not fail the build (ignoreFailures in build.gradle).
-      - name: Run Checkstyle, SpotBugs and tests with coverage
+      - name: Run Checkstyle and SpotBugs
         run: >
           ./gradlew
-          core:checkstyleMain lwjgl3:checkstyleMain server:app:checkstyleMain
-          core:spotbugsMain lwjgl3:spotbugsMain server:app:spotbugsMain
-          core:test lwjgl3:test server:app:test
+          core:checkstyleMain lwjgl3:checkstyleMain server:app:checkstyleMain shared:checkstyleMain
+          core:spotbugsMain lwjgl3:spotbugsMain server:app:spotbugsMain shared:spotbugsMain
+          --continue
+
+      # Failing tests fail the build. Reports are still written (see the steps below).
+      - name: Run tests with coverage
+        run: >
+          ./gradlew
+          core:test lwjgl3:test server:app:test shared:test
           --continue
 
       - name: Write summary
         if: always()
-        run: |
-          {
-            echo "## Code quality report"
-            echo
-            for f in $(find . -path '*/build/reports/checkstyle/main.xml'); do
-              echo "- Checkstyle \`$f\`: $(grep -c '<error ' "$f") warnings"
-            done
-            if ls ./*/build/reports/jacoco/test/jacocoTestReport.xml ./server/*/build/reports/jacoco/test/jacocoTestReport.xml >/dev/null 2>&1; then
-              echo "- JaCoCo reports generated (see artifact)"
-            else
-              echo "- JaCoCo: no coverage data (no tests found)"
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: bash .github/scripts/test-summary.sh >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload reports
         if: always()
@@ -66,4 +60,6 @@ jobs:
             **/build/reports/checkstyle/
             **/build/reports/spotbugs/
             **/build/reports/jacoco/
+            **/build/reports/tests/
+            **/build/test-results/test/
           if-no-files-found: warn
