@@ -1,0 +1,53 @@
+services:
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes" # root not needed
+      MYSQL_DATABASE: the_last_semester
+      MYSQL_USER: user
+      MYSQL_PASSWORD_FILE: /run/secrets/db_pw
+    secrets:
+      - db_pw
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    logging:
+      driver: local # activate log rotation to avoid full disk
+    healthcheck:
+      test: mysqladmin ping -h 127.0.0.1
+      interval: 5s
+      retries: 60
+
+  app:
+    build: app
+    restart: unless-stopped
+    secrets:
+      - db_pw
+    depends_on:
+      db:
+        condition: service_healthy
+    logging:
+      driver: local
+
+  proxy:
+    image: caddy:2.11
+    restart: unless-stopped
+    ports:
+      - "443:443" # HTTPS
+    volumes:
+      - caddy_data:/data
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - app
+    logging:
+      driver: local
+
+volumes:
+  db_data: # use default settings
+  caddy_data: # use default settings
+
+secrets:
+  db_pw:
+    file: secrets/db_pw
