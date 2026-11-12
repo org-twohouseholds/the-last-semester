@@ -1,32 +1,51 @@
 package com.extracreditstudios.thelastsemester;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.Game;                                       // ✅ [1]
+import com.badlogic.gdx.Gdx;                                        // ✅ [3]
+import com.badlogic.gdx.Input;                                      // ✅ [3]
+import com.badlogic.gdx.Preferences;                                // ✅ [2]
+import com.badlogic.gdx.Screen;                                     // ✅ [4]
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;                     // ✅ [2]
+import com.extracreditstudios.thelastsemester.screens.HomeScreen;   // ✅ [3]
 
-/** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
-public class TheLastSemesterGame extends ApplicationAdapter {
-    private SpriteBatch batch;
-    private Texture image;
+public class TheLastSemesterGame extends Game {
+
+    private Skin skin;
+    private Preferences prefs;
 
     @Override
     public void create() {
-        batch = new SpriteBatch();
-        image = new Texture("libgdx.png");
+        Gdx.input.setCatchKey(Input.Keys.BACK, true);
+        skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
+        prefs = Gdx.app.getPreferences("the-last-semester");
+        setScreen(new HomeScreen(this));
     }
 
-    @Override
-    public void render() {
-        ScreenUtils.clear(0.15f, 0.15f, 0.2f, 1f);
-        batch.begin();
-        batch.draw(image, 140, 210);
-        batch.end();
+    public void goTo(Screen next) {
+        Gdx.app.postRunnable(() -> {
+            Screen old = getScreen();
+            setScreen(next);
+            if (old != null && old != next) {
+                old.dispose();
+            }
+        });
+    }
+
+    public Skin getSkin() {
+        return skin;
+    }
+
+    public Preferences getPrefs() {
+        return prefs;
     }
 
     @Override
     public void dispose() {
-        batch.dispose();
-        image.dispose();
+        Screen current = getScreen();
+        super.dispose();
+        if (current != null) {
+            current.dispose();
+        }
+        skin.dispose();
     }
 }
