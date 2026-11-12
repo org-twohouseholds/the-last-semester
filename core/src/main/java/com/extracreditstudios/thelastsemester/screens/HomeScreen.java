@@ -52,15 +52,18 @@ public class HomeScreen extends BaseScreen {
         root.add(championSelector).expandY().bottom().padBottom(24).row();
 
         // TODO: Register Button später woanders platzieren
-        root.add(button("Register (Test)", () -> game.goTo(new RegisterScreen(game))))
+       root.add(button("Register (Test)", () -> game.goTo(new RegisterScreen(game))))
+        // Testklasse von D.
+       // root.add(button("Register (Test)", () -> game.goTo(new CopyRegisterScreen(game))))
                 .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();
 
         root.add(button("Join / Create Game",
-                        () -> game.goTo(new PlaceholderScreen(game, "Join / Create Game"))))
+                    //    () -> game.goTo(new PlaceholderScreen(game, "Join / Create Game"))))
+                () -> game.goTo(new JoinLobbyScreen(game, "Lobby-123"))))
                 .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();
 
         root.add(button("Character",
-                        () -> game.goTo(new PlaceholderScreen(game, "Character"))))
+                        () -> game.goTo(new CharacterSelectionScreen())))
                 .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();
 
         root.add(button("Settings",
