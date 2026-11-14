@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 
@@ -27,6 +28,32 @@ public class AccountStore {
                 }
             }
             throw e; // session token collision (very unlikely) only fails one request
+        }
+    }
+
+    public static String findPasswordHash(HikariDataSource ds, String session_token_hash)
+        throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "SELECT password_hash FROM account WHERE session_token_hash = ?")) {
+            ps.setString(1, session_token_hash);
+            try (ResultSet result = ps.executeQuery()) {
+                return result.next() ? result.getString("password_hash") : null;
+            }
+        }
+    }
+
+    public static void deleteAccount(HikariDataSource ds, String session_token_hash,
+                                     String password_hash) throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "DELETE FROM account WHERE session_token_hash = ? " +
+                     "AND CAST(password_hash AS BINARY) = CAST(? AS BINARY)")) {
+            ps.setString(1, session_token_hash);
+            ps.setString(2, password_hash);
+            if (ps.executeUpdate() == 0) {
+                throw new ConflictResponse("Account changed before deletion");
+            }
         }
     }
 }
