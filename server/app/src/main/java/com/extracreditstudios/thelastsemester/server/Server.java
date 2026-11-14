@@ -60,6 +60,8 @@ public class Server {
     private static void setupDelete(Javalin server, HikariDataSource ds) {
         server.post("/account/delete", ctx -> {
             Delete.Request request = Delete.validateRequest(ctx);
+
+            // Require the Bearer prefix before extracting the token.
             String authorization = ctx.header("Authorization");
             String bearerPrefix = "Bearer ";
             if (authorization == null || !authorization.regionMatches(
@@ -68,6 +70,7 @@ public class Server {
                 throw new UnauthorizedResponse("A valid session token is required");
             }
 
+            // Reject an empty token after removing surrounding whitespace.
             String session_token = authorization.substring(bearerPrefix.length()).strip();
             if (session_token.isEmpty()) {
                 ctx.header("WWW-Authenticate", "Bearer");
