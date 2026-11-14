@@ -6,6 +6,7 @@ import com.extracreditstudios.thelastsemester.server.security.Passwords;
 import com.extracreditstudios.thelastsemester.server.security.SessionTokens;
 import com.extracreditstudios.thelastsemester.server.shared.Protocol;
 import com.extracreditstudios.thelastsemester.server.shared.messages.Login;
+import com.extracreditstudios.thelastsemester.server.shared.messages.Logout;
 import com.extracreditstudios.thelastsemester.server.shared.messages.Register;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -26,6 +27,7 @@ public class Server {
         server.before(Server::checkProtocolVersion);
         setupRegister(server, ds);
         setupLogin(server, ds);
+        setupLogout(server, ds);
         server.start(7070);
     }
 
@@ -74,6 +76,16 @@ public class Server {
             else {
                 throw new HttpResponseException(401, "Invalid password");
             }
+        });
+    }
+
+    private static void setupLogout(Javalin server, HikariDataSource ds) {
+        server.post("/auth/logout", ctx -> {
+            Logout.Request request = Logout.validateRequest(ctx);
+            String session_token = request.session_token();
+            String session_token_hash = SessionTokens.hash(session_token);
+            AccountStore.setSessionTokenNull(ds, session_token_hash);
+            ctx.status(204);
         });
     }
 

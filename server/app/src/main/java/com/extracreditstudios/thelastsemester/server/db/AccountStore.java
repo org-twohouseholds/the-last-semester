@@ -49,4 +49,13 @@ public class AccountStore {
             ps.executeUpdate();
         }
     }
+
+    public static void setSessionTokenNull(HikariDataSource ds, String session_token_hash) throws SQLException {
+        try(Connection c = ds.getConnection();
+            PreparedStatement ps = c.prepareStatement(
+                "UPDATE account SET session_token_hash = NULL WHERE session_token_hash = ?")) {
+            ps.setString(1, session_token_hash);
+            ps.executeUpdate();
+        }
+    }
 }
