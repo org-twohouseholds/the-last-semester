@@ -65,20 +65,20 @@ public class Server {
             if (authorization == null || !authorization.regionMatches(
                 true, 0, bearerPrefix, 0, bearerPrefix.length())) {
                 ctx.header("WWW-Authenticate", "Bearer");
-                throw new UnauthorizedResponse("Invalid session token");
+                throw new UnauthorizedResponse("A valid session token is required");
             }
 
             String session_token = authorization.substring(bearerPrefix.length()).strip();
             if (session_token.isEmpty()) {
                 ctx.header("WWW-Authenticate", "Bearer");
-                throw new UnauthorizedResponse("Invalid session token");
+                throw new UnauthorizedResponse("A valid session token is required");
             }
 
             String session_token_hash = SessionTokens.hash(session_token);
             String password_hash = AccountStore.findPasswordHash(ds, session_token_hash);
             if (password_hash == null) {
                 ctx.header("WWW-Authenticate", "Bearer");
-                throw new UnauthorizedResponse("Invalid session token");
+                throw new UnauthorizedResponse("A valid session token is required");
             }
             if (!Passwords.verify(password_hash, request.password())) {
                 throw new ForbiddenResponse("Incorrect password");
