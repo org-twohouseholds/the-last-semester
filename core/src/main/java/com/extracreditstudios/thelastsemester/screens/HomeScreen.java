@@ -12,15 +12,16 @@ import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 public class HomeScreen extends BaseScreen {
 
     private static final String BACKGROUND_PATH = "backgrounds/campus.png";
-    private static final String[] CHAMPION_NAMES = {"Champion 1", "Champion 2", "Champion 3"};
+    private static final String[] CHAMPION_NAMES = {"Champion 1", "Champion 2", "Champion 3", "Champion 4"};
     private static final String[] CHAMPION_IMAGES = {
         "champions/champion_1.png",
         "champions/champion_2.png",
-        "champions/champion_3.png"
+        "champions/champion_3.png",
+        "champions/champion_4.png"
     };
 
-    private Texture backgroundTexture; // Bilder belegen Grafikspeicher -> in dispose() freigeben!
-    private ChampionSelector championSelector; // lädt eigene Bilder -> ebenfalls in dispose() freigeben
+    private Texture backgroundTexture;
+    private ChampionSelector championSelector;
 
     public HomeScreen(TheLastSemesterGame game) {
         super(game);
@@ -52,7 +53,7 @@ public class HomeScreen extends BaseScreen {
         root.add(championSelector).expandY().bottom().padBottom(24).row();
 
         // TODO: Register Button später woanders platzieren
-       root.add(button("Register (Test)", () -> game.goTo(new RegisterScreen(game))))
+       root.add(button("Register (Test)", () -> game.goTo(new LoginScreen(game))))
         // Testklasse von D.
        // root.add(button("Register (Test)", () -> game.goTo(new CopyRegisterScreen(game))))
                 .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();

@@ -17,11 +17,12 @@ public class CopyHomeScreen extends BaseScreen {
 
     //private static final String BACKGROUND_PATH = "backgrounds/campus.png";
     private static final String BACKGROUND_PATH = "backgrounds/campus_2.png";
-    private static final String[] CHAMPION_NAMES = {"Champion 1", "Champion 2", "Champion 3"};
+    private static final String[] CHAMPION_NAMES = {"Champion 1", "Champion 2", "Champion 3", "Champion 4"};
     private static final String[] CHAMPION_IMAGES = {
-        "champions/champion_1.png",
-        "champions/champion_2.png",
-        "champions/champion_3.png"
+        "champions/esoteric.png",
+        "champions/bitter_one.png",
+        "champions/alcoholic.png",
+        "champions/hacker.png"
     };
 
     // Style-Name aus design_sammlung.json (ggf. anpassen)
@@ -30,8 +31,8 @@ public class CopyHomeScreen extends BaseScreen {
     private final UIFactory ui;
     private final Skin lobbySkin;
 
-    private Texture backgroundTexture; // Bilder belegen Grafikspeicher -> in dispose() freigeben!
-    private ChampionSelector championSelector; // lädt eigene Bilder -> ebenfalls in dispose() freigeben
+    private Texture backgroundTexture;
+    private ChampionSelector championSelector;
 
     public CopyHomeScreen(TheLastSemesterGame game) {
         super(game);
