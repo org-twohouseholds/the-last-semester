@@ -24,6 +24,7 @@ public class PlaceholderScreen extends BaseScreen {
 
     @Override
     protected void onBack() {
-        game.goTo(new HomeScreen(game));
+       // game.goTo(new HomeScreen(game));
+        game.goTo(new CopyHomeScreen(game));
     }
 }

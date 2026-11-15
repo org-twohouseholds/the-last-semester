@@ -142,7 +142,9 @@ public class JoinLobbyScreen extends BaseScreen {
 
     private void leaveLobby() {
         Gdx.app.log("Lobby", "Leave Lobby");
-        game.setScreen(new HomeScreen(game));
+       // game.setScreen(new HomeScreen(game));
+        game.setScreen(new CopyHomeScreen(game));
+
     }
 
     @Override

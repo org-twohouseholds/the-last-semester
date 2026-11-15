@@ -1,33 +1,37 @@
 package com.extracreditstudios.thelastsemester.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Net;
+import com.badlogic.gdx.net.HttpRequestBuilder;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Timer;
-import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
-
-// Ab hier neu:
-import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.JsonWriter;
+import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-
-/** Register-Screen */
+/** Register-Screen: Eingabe -> Server-Anfrage -> Ergebnis anzeigen. */
 public class CopyRegisterScreen extends BaseScreen {
 
-    // Kopie von Yannis' code.
+    // Server-Adresse für die Registrierung (vom Server-Team)
+    private static final String REGISTER_URL = "https://the-last-semester.twohouseholds.com/auth/register";
 
+    // Muss exakt Protocol.VERSION auf dem Server entsprechen, sonst antwortet der Server mit 426
+    private static final String PROTOCOL_VERSION = "1.0.0";
 
-    private static final String SERVER_URL = "https://the-last-semester.twohouseholds.com";
-    private String sessionToken;
+    // Feldnamen wie in Register.Request(String username, String password) auf dem Server
+    private static final String FIELD_USERNAME = "username";
+    private static final String FIELD_PASSWORD = "password";
 
+    // Style-Name aus design_sammlung.json (ggf. anpassen)
+    private static final String BUTTON_STYLE = "second";
+
+    private final UIFactory ui;
+    private final Skin lobbySkin;
 
     private TextField usernameField;
     private TextField passwordField;
@@ -36,51 +40,69 @@ public class CopyRegisterScreen extends BaseScreen {
 
     public CopyRegisterScreen(TheLastSemesterGame game) {
         super(game);
+        this.lobbySkin = new Skin(Gdx.files.internal("ui/lobby/design_sammlung.json"));
+        this.ui = new UIFactory(lobbySkin);
     }
 
     /** Titel, Eingabefelder, Buttons und Statusanzeige */
     @Override
     protected void buildUi() {
-        Label title = new Label("Register", skin);
-        title.setFontScale(1.6f);
+        Label title = ui.createLabel("Register", "title");
 
-        usernameField = new TextField("", skin);
-        usernameField.setMessageText("Username"); // Hinweistext im leeren Feld
+        usernameField = ui.createTextField("Username"); // Hinweistext im leeren Feld
         usernameField.setMaxLength(20);
 
-        passwordField = new TextField("", skin);
-        passwordField.setMessageText("Password");
+        passwordField = ui.createTextField("Password");
         passwordField.setPasswordMode(true); // Eingabe verdeckt
         passwordField.setPasswordCharacter('*');
+        passwordField.setMaxLength(128);
 
-        registerButton = button("Register", this::onRegisterPressed);
+        registerButton = lobbyButton("Register", this::onRegisterPressed);
 
-        statusLabel = new Label("", skin);
+        statusLabel = ui.createLabel("", "small");
         statusLabel.setAlignment(Align.center);
         statusLabel.setWrap(true);
 
         root.add(title).padBottom(30).row();
-        root.add(usernameField).width(BUTTON_WIDTH).height(48).padBottom(12).row();
-        root.add(passwordField).width(BUTTON_WIDTH).height(48).padBottom(24).row();
-        root.add(registerButton).width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(20).row();
-        root.add(statusLabel).width(BUTTON_WIDTH).padBottom(30).row();
-        root.add(button("Back", this::onBack)).width(BUTTON_WIDTH).height(BUTTON_HEIGHT).row();
+        root.add(usernameField).width(UIFactory.FULL_BUTTON_WIDTH).height(48).padBottom(12).row();
+        root.add(passwordField).width(UIFactory.FULL_BUTTON_WIDTH).height(48).padBottom(24).row();
+        root.add(registerButton).width(UIFactory.FULL_BUTTON_WIDTH).height(UIFactory.FULL_BUTTON_HEIGHT).padBottom(20).row();
+        root.add(statusLabel).width(UIFactory.FULL_BUTTON_WIDTH).padBottom(30).row();
+        root.add(lobbyButton("Back", "default", this::onBack))
+            .width(UIFactory.FULL_BUTTON_WIDTH).height(UIFactory.FULL_BUTTON_HEIGHT).row();
+
 
         stage.setKeyboardFocus(usernameField); // Cursor direkt im Namensfeld
     }
 
-    /** Prüft die Eingaben und startet die Anfrage. */
+
+    /** Button im Lobby-Design, löst beim Klick dieselbe Aktion aus wie vorher. */
+    private TextButton lobbyButton(String text, Runnable action) {
+        return lobbyButton(text, BUTTON_STYLE, action);
+    }
+
+    private TextButton lobbyButton(String text, String style, Runnable action) {
+        TextButton btn = ui.createFullWidthButton(text, style);
+        btn.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                action.run();
+            }
+        });
+        return btn;
+    }
+
+    /** Prüft Eingaben und startet die Anfrage. */
     private void onRegisterPressed() {
         String username = usernameField.getText().trim();
         String password = passwordField.getText();
 
         if (!username.matches("[A-Za-z0-9_]{3,20}")) {
-            statusLabel.setText("Username muss 3-20 Zeichen enthalten");
+            statusLabel.setText("Name: 3-20 Zeichen, nur Buchstaben, Zahlen und _");
             return;
         }
-
         if (password.length() < 15 || password.length() > 128) {
-            statusLabel.setText("Passwort muss 15-128 Zeichen lang sein");
+            statusLabel.setText("Passwort: mindestens 15 Zeichen");
             return;
         }
 
@@ -89,102 +111,73 @@ public class CopyRegisterScreen extends BaseScreen {
         sendRegisterRequest(username, password);
     }
 
-    // TODO (Server-Team): echten API-Aufruf einbauen und danach onRegisterResult(...) aufrufen.
+    /** Schickt Name + Passwort als JSON an den Server und wertet die Antwort aus. */
     private void sendRegisterRequest(String username, String password) {
-        new Thread(() -> {
-            HttpURLConnection connection = null;
+        // JSON-Inhalt bauen
+        JsonValue body = new JsonValue(JsonValue.ValueType.object);
+        body.addChild(FIELD_USERNAME, new JsonValue(username));
+        body.addChild(FIELD_PASSWORD, new JsonValue(password));
 
-            try {
-                URL url = new URL(SERVER_URL + "/auth/register");
-                connection = (HttpURLConnection) url.openConnection();
+        // Anfrage zusammenbauen: POST an die Register-Adresse
+        Net.HttpRequest request = new HttpRequestBuilder().newRequest()
+            .method(Net.HttpMethods.POST)
+            .url(REGISTER_URL)
+            .header("Content-Type", "application/json")
+            .header("protocol-version", PROTOCOL_VERSION) // Server prüft die Protokoll-Version
+            .content(body.toJson(JsonWriter.OutputType.json))
+            .timeout(10000) // nach 10 Sekunden aufgeben
+            .build();
 
-                connection.setRequestMethod("POST");
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
-                connection.setDoOutput(true);
-
-                connection.setRequestProperty(
-                    "Content-Type", "application/json; charset=UTF-8"
-                );
-                connection.setRequestProperty("protocol-version", "1.0.0");
-
-                JsonValue requestJson = new JsonValue(JsonValue.ValueType.object);
-                requestJson.addChild("username", new JsonValue(username));
-                requestJson.addChild("password", new JsonValue(password));
-
-                byte[] requestBody = requestJson
-                    .toJson(JsonWriter.OutputType.json)
-                    .getBytes(StandardCharsets.UTF_8);
-
-                try (OutputStream output = connection.getOutputStream()) {
-                    output.write(requestBody);
-                }
-
-                int responseCode = connection.getResponseCode();
-
-                InputStream responseStream = responseCode >= 200
-                    && responseCode < 300
-                    ? connection.getInputStream()
-                    : connection.getErrorStream();
-
-                String responseBody = "";
-
-                if (responseStream != null) {
-                    try (InputStream input = responseStream) {
-                        responseBody = new String(
-                            input.readAllBytes(),
-                            StandardCharsets.UTF_8
-                        );
-                    }
-                }
-
-                if (responseCode == 201) {
-                    JsonValue responseJson = new JsonReader().parse(responseBody);
-                    String token = responseJson.getString("session_token");
-
-                    onRegisterResult(true, "Konto erfolgreich erstellt!", token);
-
-                } else if (responseCode == 409) {
-                    onRegisterResult(false, "Username bereits vergeben", null);
-
-                } else if (responseCode == 400) {
-                    onRegisterResult(false, "Ungültige Eingaben", null);
-
-                } else if (responseCode == 426) {
-                    onRegisterResult(false, "Spielversion nicht aktuell", null);
-
+        // Abschicken; die Antwort kommt später in einem anderen Thread an
+        Gdx.net.sendHttpRequest(request, new Net.HttpResponseListener() {
+            @Override
+            public void handleHttpResponse(Net.HttpResponse response) {
+                int code = response.getStatus().getStatusCode();
+                Gdx.app.log("Register", "Antwort " + code + ": " + response.getResultAsString());
+                if (code == 200 || code == 201) {
+                    onRegisterResult(true, "Konto erstellt!");
+                } else if (code == 409) {
+                    onRegisterResult(false, "Name schon vergeben");
+                } else if (code == 400) {
+                    onRegisterResult(false, "Ungültige Eingabe");
+                } else if (code == 426) {
+                    onRegisterResult(false, "Bitte Spiel aktualisieren (Protokoll-Version)");
                 } else {
-                    onRegisterResult(false, "Serverfehler: " + responseCode, null);
-                }
-
-            } catch (Exception e) {
-                Gdx.app.error("Register", "Registrierungsanfrage fehlgeschlagen", e);
-                onRegisterResult(false, "Server nicht erreichbar", null);
-
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
+                    onRegisterResult(false, "Serverfehler (" + code + ")");
                 }
             }
-        }, "register-request").start();
-    }
 
-    /** Zeigt das Ergebnis an */
-    public void onRegisterResult(boolean success, String message, String token) {
-        Gdx.app.postRunnable(() -> {
-            statusLabel.setText(message);
-            registerButton.setDisabled(false);
+            @Override
+            public void failed(Throwable t) {
+                Gdx.app.error("Register", "Keine Verbindung", t);
+                onRegisterResult(false, "Keine Verbindung zum Server");
+            }
 
-            if (success) {
-                sessionToken = token;
-                passwordField.setText("");
+            @Override
+            public void cancelled() {
+                onRegisterResult(false, "Anfrage abgebrochen");
             }
         });
     }
 
-    /** Zurück zum Homescreen. */
+    /** Zeigt das Ergebnis an, darf aus jedem Thread aufgerufen werden */
+    public void onRegisterResult(boolean success, String message) {
+        Gdx.app.postRunnable(() -> { // zurück in den UI-Thread
+            statusLabel.setText((success ? "Erfolg: " : "Fehler: ") + message);
+            registerButton.setDisabled(false);
+        });
+    }
+
+    /** Zurück zum Homescreen */
     @Override
     protected void onBack() {
-        game.goTo(new HomeScreen(game));
+        // game.goTo(new HomeScreen(game));
+        game.goTo(new CopyHomeScreen(game));
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        lobbySkin.dispose(); // eigener Skin -> freigeben
     }
 }

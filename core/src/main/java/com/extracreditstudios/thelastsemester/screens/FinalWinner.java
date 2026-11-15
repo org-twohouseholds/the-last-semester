@@ -94,7 +94,8 @@ public class FinalWinner extends BaseScreen {
     @Override
     protected void onBack() {
         // Zurück zum Hauptmenü
-        game.goTo(new HomeScreen(game));
+        //game.goTo(new HomeScreen(game));
+        game.goTo(new CopyHomeScreen(game));
     }
 
     @Override
