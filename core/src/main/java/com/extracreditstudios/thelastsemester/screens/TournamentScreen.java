@@ -14,6 +14,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
+import com.extracreditstudios.thelastsemester.battleView.BattleScreen;
+import com.badlogic.gdx.Screen;
 
 public class TournamentScreen extends BaseScreen {
 
@@ -223,8 +225,37 @@ public class TournamentScreen extends BaseScreen {
         return card;
     }
 
-
+// Hab das verändert -vici
     private void nextRound() {
+
+        Screen nextScreen;
+
+        if (players.length <= 2) {
+            // Nach dem letzten Kampf kommt der FinalWinner-Screen
+            boolean isUserWinner = true;
+            String winnerName = players[0];
+            int earnedPoints = 30;
+
+            nextScreen = new FinalWinner(
+                game, isUserWinner, winnerName, earnedPoints
+            );
+
+        } else {
+            // Nächste Turnierrunde vorbereiten
+            String[] winners = new String[players.length / 2];
+
+            for (int i = 0; i < winners.length; i++) {
+                winners[i] = players[i * 2];
+            }
+
+            nextScreen = new TournamentScreen(game, winners);
+        }
+
+        // Zuerst BattleScreen öffnen
+        game.goTo(new BattleScreen(game, nextScreen));
+    }
+
+  /**  private void nextRound() {
         if (players.length <= 2) {
             // Das Turnier ist vorbei!
             boolean isUserWinner = true; // True für Sieg, False für Niederlage
@@ -240,7 +271,8 @@ public class TournamentScreen extends BaseScreen {
             }
             game.goTo(new TournamentScreen(game, winners));
         }
-    }
+   }
+   */
 
     @Override
     protected void onBack() {
