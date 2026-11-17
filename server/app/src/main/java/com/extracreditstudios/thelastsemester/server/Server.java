@@ -5,12 +5,14 @@ import com.extracreditstudios.thelastsemester.server.security.Passwords;
 import com.extracreditstudios.thelastsemester.server.security.SessionTokens;
 import com.extracreditstudios.thelastsemester.server.shared.Protocol;
 import com.extracreditstudios.thelastsemester.server.shared.messages.Register;
+import com.extracreditstudios.thelastsemester.server.shared.messages.ChangePassword;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.HttpResponseException;
+import io.javalin.http.UnauthorizedResponse;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,6 +25,7 @@ public class Server {
         Javalin server = Javalin.create();
         server.before(Server::checkProtocolVersion);
         setupRegister(server, ds);
+        setupChangePassword(server, ds);
         server.start(7070);
     }
 
@@ -50,6 +53,38 @@ public class Server {
             AccountStore.createAccount(ds, request.username(), password_hash, session_token_hash);
             ctx.json(new Register.Response(session_token));
             ctx.status(201);
+        });
+    }
+
+    private static void setupChangePassword(Javalin server, HikariDataSource ds) {
+        server.put("/account/password", ctx -> {
+
+            // 1. Sitzungstoken aus dem Authorization-Header lesen
+            String authorization = ctx.header("Authorization");
+
+            if (authorization == null
+                    || !authorization.startsWith("Bearer ")
+                    || authorization.substring(7).isBlank()) {
+                throw new UnauthorizedResponse("Missing or invalid session token");
+            }
+
+            String sessionToken = authorization.substring(7);
+
+            // 2. Sitzungstoken hashen
+            String sessionTokenHash = SessionTokens.hash(sessionToken);
+
+            // 3. Eingaben validieren
+            ChangePassword.Request request = ChangePassword.validateRequest(ctx);
+
+            // 4. Passwort in der Datenbank ändern
+            AccountStore.changePassword(
+                    ds,
+                    sessionTokenHash,
+                    request.oldPassword(),
+                    request.newPassword());
+
+            // 5. Erfolg zurückgeben
+            ctx.status(204);
         });
     }
 
