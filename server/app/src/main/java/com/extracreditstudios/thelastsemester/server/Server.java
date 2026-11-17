@@ -58,8 +58,6 @@ public class Server {
         });
     }
 
-    //Comment for Review:
-    // Wouldn't it be more readable to do everything(also setupRegister) via an Account (need to pass fewer parameters into the methods)?
     private static void setupLogin(Javalin server, HikariDataSource ds) {
         server.post("/auth/login", ctx -> {
             Login.Request request = Login.validateRequest(ctx);

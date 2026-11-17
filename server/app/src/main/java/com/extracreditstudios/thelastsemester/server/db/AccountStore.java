@@ -34,7 +34,8 @@ public class AccountStore {
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new Account(rs.getString("username"), rs.getString("password_hash"));
+                return new Account(rs.getString("username"), rs.getString("password_hash"),
+                    rs.getString("session_token_hash"), rs.getInt("selected_character_id"));
             }
         }
         throw new NotFoundResponse("Account with username: " + username + " not found");

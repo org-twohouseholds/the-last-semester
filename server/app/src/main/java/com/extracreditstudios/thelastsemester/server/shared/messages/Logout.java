@@ -7,7 +7,7 @@ public class Logout {
 
     public static Logout.Request validateRequest(Context ctx) {
         return ctx.bodyValidator(Logout.Request.class)
-            .check(r -> r.session_token() != null && r.session_token().matches("[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]="),"Invalid token")
+            .check(r -> MessageHelper.validateSessionToken(r.session_token()),"Invalid token")
             .get();
     }
 }
