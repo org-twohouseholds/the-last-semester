@@ -59,7 +59,6 @@ public class Server {
 
     private static void setupDelete(Javalin server, HikariDataSource ds) {
         server.post("/account/delete", ctx -> {
-            Delete.Request request = Delete.validateRequest(ctx);
 
             // Require the Bearer prefix before extracting the token.
             String authorization = ctx.header("Authorization");
@@ -83,6 +82,9 @@ public class Server {
                 ctx.header("WWW-Authenticate", "Bearer");
                 throw new UnauthorizedResponse("A valid session token is required");
             }
+
+            Delete.Request request = Delete.validateRequest(ctx);
+
             if (!Passwords.verify(password_hash, request.password())) {
                 throw new ForbiddenResponse("Incorrect password");
             }
