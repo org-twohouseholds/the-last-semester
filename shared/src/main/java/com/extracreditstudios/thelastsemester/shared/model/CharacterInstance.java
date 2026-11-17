@@ -1,6 +1,7 @@
 package com.extracreditstudios.thelastsemester.shared.model;
 
 import com.extracreditstudios.thelastsemester.shared.model.effectsystem.ActiveEffect;
+import com.extracreditstudios.thelastsemester.shared.model.effectsystem.EffectRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ public class CharacterInstance {
         this.maxEnergy = character.baseEnergy();
         this.dmgAmplification = 1.0;
         this.dmgReduction = 1.0;
+        this.activeEffects = new ArrayList<>();
     }
 
     public void takeDamage(int amount) {
@@ -37,11 +39,16 @@ public class CharacterInstance {
         currentHP = Math.max(0, currentHP - amount);
     }
 
-    public void useAbility(Ability ability) {
+    public void useAbility(Ability ability, EffectRegistry effectRegistry) {
         if (!canUse(ability)) {
             throw new IllegalArgumentException("Ability cannot be used: " + ability);
         }
         currentEnergy -= ability.energyCost();
+
+        for(String effectName : ability.effects()){
+            ActiveEffect effect = new  ActiveEffect(effectName, effectRegistry.getEffect(effectName).getTurnDuration());
+            activeEffects.add(effect);
+        }
     }
 
     public boolean canUse(Ability ability) {
@@ -86,7 +93,7 @@ public class CharacterInstance {
         if(amount + this.currentEnergy > this.maxEnergy){
             this.currentEnergy = this.maxEnergy;
         }else{
-            this.currentHP += amount;
+            this.currentEnergy += amount;
         }
         return true;
     }
@@ -101,6 +108,15 @@ public class CharacterInstance {
 
     public void removeActiveEffect(ActiveEffect activeEffect) {
         this.activeEffects.remove(activeEffect);
+    }
+
+    public void tickActiveEffects(){
+       activeEffects.removeIf(e -> {
+               if(e.getRemainingTurns() > 0){
+                   e.setRemainingTurns(e.getRemainingTurns() - 1);
+               }
+               return e.getRemainingTurns() == 0;
+           });
     }
 
     public double getDmgAmplification() {

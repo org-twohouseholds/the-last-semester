@@ -1,5 +1,7 @@
 package com.extracreditstudios.thelastsemester.shared.model;
 
+import com.extracreditstudios.thelastsemester.shared.model.effectsystem.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,10 +13,12 @@ public class Match {
     private final Map<Combatant, Ability> pendingActions = new HashMap<>();
     private int turnNumber = 1;
     private MatchStatus status = MatchStatus.IN_PROGRESS;
+    private final EffectSystem effectSystem;
 
-    public Match(Combatant combatantA, Combatant combatantB) {
+    public Match(Combatant combatantA, Combatant combatantB, EffectSystem effectSystem) {
         this.combatantA = combatantA;
         this.combatantB = combatantB;
+        this.effectSystem = effectSystem;
     }
 
     /** Stores the secret choice of a combatant. Returns false if the action is not allowed. */
@@ -41,10 +45,16 @@ public class Match {
         Combatant first = findFasterCombatant();
         Combatant second = first == combatantA ? combatantB : combatantA;
 
+        //For every point in the Match for which a EventTiming exists, there has to be a call to apply the Effect through the effectSystem
+        effectSystem.applyEffects(first.getCharacter(), second.getCharacter(), EffectTiming.BEFORE_ATTACK);
         executeAction(first, second);
+        effectSystem.applyEffects(first.getCharacter(), second.getCharacter(), EffectTiming.AFTER_ATTACK);
+
         // TODO team decision: does a fighter defeated by the first action still act?
         if (!second.getCharacter().isDefeated()) {
+            effectSystem.applyEffects(second.getCharacter(), first.getCharacter(), EffectTiming.BEFORE_ATTACK);
             executeAction(second, first);
+            effectSystem.applyEffects(second.getCharacter(), first.getCharacter(), EffectTiming.AFTER_ATTACK);
         }
         pendingActions.clear();
 
@@ -53,6 +63,8 @@ public class Match {
         } else {
             turnNumber++;
         }
+        effectSystem.applyEffects(first.getCharacter(), second.getCharacter(), EffectTiming.AFTER_TURN);
+        effectSystem.applyEffects(second.getCharacter(), first.getCharacter(), EffectTiming.AFTER_TURN);
     }
 
     public Combatant determineWinner() {
@@ -84,7 +96,7 @@ public class Match {
 
     private void executeAction(Combatant actor, Combatant target) {
         Ability ability = pendingActions.get(actor);
-        actor.getCharacter().useAbility(ability);
-        target.getCharacter().takeDamage(ability.baseDamage());
+        actor.getCharacter().useAbility(ability, effectSystem.getRegistry());
+        target.getCharacter().takeDamage((int) (ability.baseDamage() * actor.getCharacter().getDmgAmplification() * target.getCharacter().getDmgReduction()));
     }
 }

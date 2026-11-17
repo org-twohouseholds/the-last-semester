@@ -21,12 +21,12 @@ public class Effect {
 
     public void apply(CharacterInstance source, CharacterInstance target){
         switch (type) {
-            case HEAL:              source.flatHeal((int) this.value);
-            case ENERGY_GAIN:       source.flatEnergyGain((int) this.value);
+            case HEAL:              source.flatHeal((int) this.value); break;
+            case ENERGY_GAIN:       source.flatEnergyGain((int) this.value); break;
 
             //BOTH DMG AMPLIFICATION AS WELL AS DMG REDUCTION ARE MULTIPLIED --> PROBABLY NEEDS SOME SORT OF BALANCING
-            case DMG_AMPLIFICATION: source.setDmgAmplification((source.getDmgAmplification() * this.value));
-            case DMG_REDUCTION: source.setDmgReduction((source.getDmgReduction() * this.value));
+            case DMG_AMPLIFICATION: source.setDmgAmplification((source.getDmgAmplification() * this.value)); break;
+            case DMG_REDUCTION: source.setDmgReduction((source.getDmgReduction() * this.value)); break;
         }
     }
 
