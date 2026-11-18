@@ -251,8 +251,14 @@ public class TournamentScreen extends BaseScreen {
             nextScreen = new TournamentScreen(game, winners);
         }
 
+        /**
         // Zuerst BattleScreen öffnen
         game.goTo(new BattleScreen(game, nextScreen));
+         */
+
+        // Vor jedem Kampf zuerst der Shop (Runde 1 = 8 Spieler, 2 = Halbfinale, 3 = Finale)
+        int shopRound = players.length >= 8 ? 1 : players.length >= 4 ? 2 : 3;
+        game.goTo(new ShopScreen(game, shopRound, new BattleScreen(game, nextScreen)));
     }
 
   /**  private void nextRound() {
