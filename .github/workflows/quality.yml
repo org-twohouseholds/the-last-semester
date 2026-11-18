@@ -9,7 +9,7 @@ on:
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     permissions:
       contents: read
@@ -38,7 +38,7 @@ jobs:
           ./gradlew
           core:checkstyleMain lwjgl3:checkstyleMain server:app:checkstyleMain
           core:spotbugsMain lwjgl3:spotbugsMain server:app:spotbugsMain
-          core:test lwjgl3:test server:app:test
+          core:test lwjgl3:test server:app:test shared:checkstyleMain shared:spotbugsMain shared:test
           --continue
 
       - name: Write summary
