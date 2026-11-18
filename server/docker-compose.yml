@@ -3,16 +3,20 @@ services:
   db:
     image: mysql:8.4
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:3306:3306" # expose on localhost for manual queries
     environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "yes" # root not needed
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
       MYSQL_DATABASE: the_last_semester
       MYSQL_USER: user
       MYSQL_PASSWORD_FILE: /run/secrets/db_pw
     secrets:
       - db_pw
+      - db_tester_pw
     volumes:
       - db_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./db/tester.sh:/docker-entrypoint-initdb.d/tester.sh:ro
     logging:
       driver: local # activate log rotation to avoid full disk
     healthcheck:
@@ -51,3 +55,5 @@ volumes:
 secrets:
   db_pw:
     file: secrets/db_pw
+  db_tester_pw:
+    file: secrets/db_tester_pw
