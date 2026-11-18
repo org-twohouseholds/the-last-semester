@@ -1,11 +1,12 @@
 package com.extracreditstudios.thelastsemester.server;
 
-import com.extracreditstudios.thelastsemester.server.db.Account;
-import com.extracreditstudios.thelastsemester.server.db.AccountStore;
-import com.extracreditstudios.thelastsemester.server.security.Passwords;
-import com.extracreditstudios.thelastsemester.server.security.SessionTokens;
-import com.extracreditstudios.thelastsemester.server.shared.Protocol;
-import com.extracreditstudios.thelastsemester.server.shared.messages.*;
+import com.extracreditstudios.thelastsemester.server.db.*;
+import com.extracreditstudios.thelastsemester.server.security.*;
+import com.extracreditstudios.thelastsemester.shared.messages.ChangePassword;
+import com.extracreditstudios.thelastsemester.shared.messages.Delete;
+import com.extracreditstudios.thelastsemester.shared.messages.Login;
+import com.extracreditstudios.thelastsemester.shared.messages.Protocol;
+import com.extracreditstudios.thelastsemester.shared.messages.Register;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -58,7 +59,7 @@ public class Server {
         }
 
         String session_token = authorization.substring(bearerPrefix.length()).strip();
-        if(!MessageHelper.validateSessionToken(session_token)) {
+        if(!MessageValidator.validateSessionToken(session_token)) {
             ctx.header("WWW-Authenticate", "Bearer");
             throw new UnauthorizedResponse("Invalid session token");
         }
@@ -67,7 +68,7 @@ public class Server {
 
     private static void setupRegister(Javalin server, HikariDataSource ds) {
         server.post("/auth/register", ctx -> {
-            Register.Request request = Register.validateRequest(ctx);
+            Register.Request request = MessageValidator.validateRegisterRequest(ctx);
             String password_hash = Passwords.hash(request.password());
             String session_token = SessionTokens.newToken();
             String session_token_hash = SessionTokens.hash(session_token);
@@ -87,7 +88,7 @@ public class Server {
                 throw new UnauthorizedResponse("A valid session token is required");
             }
 
-            Delete.Request request = Delete.validateRequest(ctx);
+            Delete.Request request = MessageValidator.validateDeleteRequest(ctx);
 
             if (!Passwords.verify(password_hash, request.password())) {
                 throw new ForbiddenResponse("Incorrect password");
@@ -98,7 +99,7 @@ public class Server {
 
     private static void setupLogin (Javalin server, HikariDataSource ds){
         server.post("/auth/login", ctx -> {
-            Login.Request request = Login.validateRequest(ctx);
+            Login.Request request = MessageValidator.validateLoginRequest(ctx);
             Account account = AccountStore.getAccount(ds, request.username());
             String password = request.password();
             boolean isVerified = Passwords.verify(account.password_hash(), password);
@@ -123,7 +124,7 @@ public class Server {
             });
         }
 
-    
+
 private static void setupChangePassword(Javalin server, HikariDataSource ds) {
     server.put("/account/password", ctx -> {
         String authorization = ctx.header("Authorization");
@@ -135,10 +136,10 @@ private static void setupChangePassword(Javalin server, HikariDataSource ds) {
         }
 
         String sessionTokenHash = SessionTokens.hash(authorization.substring(7));
-        ChangePassword.Request request = ChangePassword.validateRequest(ctx);
+        ChangePassword.Request request = MessageValidator.validateChangePasswordRequest(ctx);
 
         AccountStore.changePassword(ds, sessionTokenHash,
-                request.oldPassword(), request.newPassword());
+                request.old_password(), request.new_password());
 
         ctx.status(204);
     });
