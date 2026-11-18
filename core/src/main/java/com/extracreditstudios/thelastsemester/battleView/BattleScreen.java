@@ -32,12 +32,17 @@ public class BattleScreen extends ScreenAdapter {
     private GlyphLayout layout = new GlyphLayout();
 
     private Texture background;
-    private Texture bitterOne;
-    private Texture hacker;
+    private Texture youSprite;
+    private Texture enemySprite;
     private Texture button;
     private Texture hpBar;
     private Texture manaBar;
     private Texture emptyBar;
+
+    private float youSprite_xOffset;
+    private float yousprite_yOffset;
+    private float enemysprite_xOffset;
+    private float enemysprite_yOffset;
 
     private StatusBar playerHp;
     private StatusBar playerMana;
@@ -68,30 +73,34 @@ public class BattleScreen extends ScreenAdapter {
         enemyHp = new StatusBar(hpBar, emptyBar, 230, 660, true);
         enemyMana = new StatusBar(manaBar, emptyBar, 230, 640, true);
 
-        bitterOne = new Texture(Gdx.files.internal("Characters/TheBitterOne.png"), true);
-        hacker = new Texture(Gdx.files.internal("Characters/TheHacker.png"), true);
+        youSprite = new Texture(Gdx.files.internal("Characters/TheBitterOne.png"), true);
+        enemySprite = new Texture(Gdx.files.internal("Characters/TheHacker.png"), true);
+        youSprite_xOffset=0;
+        yousprite_yOffset=0;
+        enemysprite_xOffset=0;
+        enemysprite_yOffset=0;
 
-        bitterOne.setFilter(Texture.TextureFilter.MipMapLinearLinear,
+        youSprite.setFilter(Texture.TextureFilter.MipMapLinearLinear,
             Texture.TextureFilter.Linear);
-        hacker.setFilter(Texture.TextureFilter.MipMapLinearLinear,
+        enemySprite.setFilter(Texture.TextureFilter.MipMapLinearLinear,
             Texture.TextureFilter.Linear);
 
-        Fighter bitter = new Fighter(new Attack[] {
+        Fighter youFighter = new Fighter(new Attack[] {
             new Attack("Attacke 1", 20, 10),
             new Attack("Attacke 2", 35, 25),
             new Attack("Attacke 3", 10, 0),
             new Attack("Attacke 4", 50, 60)
         });
 
-        Fighter hackerFighter = new Fighter(new Attack[] {
+        Fighter enemyFighter = new Fighter(new Attack[] {
             new Attack("Hack 1", 15, 5),
             new Attack("Hack 2", 30, 20)
         });
 
-        bitter.hp = 50;
-        bitter.mana = 100;
+        youFighter.hp = 50;
+        youFighter.mana = 100;
 
-        battle = new Battle(bitter, hackerFighter);
+        battle = new Battle(youFighter, enemyFighter);
 
         attackButtons = new AttackButton[battle.player.attacks.length];
 
@@ -102,6 +111,7 @@ public class BattleScreen extends ScreenAdapter {
             );
         }
     }
+
 
 
     @Override
@@ -140,8 +150,8 @@ public class BattleScreen extends ScreenAdapter {
         batch.draw(background, 0, 0,
             viewport.getWorldWidth(), viewport.getWorldHeight());
 
-        batch.draw(bitterOne, -10, 180, 170, 430);
-        batch.draw(hacker, 400, 200, -150, 400);
+        batch.draw(youSprite, -10+youSprite_xOffset, 180+yousprite_yOffset, 170, 430);
+        batch.draw(enemySprite, 400+enemysprite_xOffset, 200+enemysprite_yOffset, -150, 400);
 
         playerHp.draw(batch, battle.player.hp);
         playerMana.draw(batch, battle.player.mana);
@@ -192,8 +202,8 @@ public class BattleScreen extends ScreenAdapter {
         if (countdownFont != null) countdownFont.dispose();
 
         if (background != null) background.dispose();
-        if (bitterOne != null) bitterOne.dispose();
-        if (hacker != null) hacker.dispose();
+        if (youSprite != null) youSprite.dispose();
+        if (enemySprite != null) enemySprite.dispose();
         if (button != null) button.dispose();
         if (hpBar != null) hpBar.dispose();
         if (manaBar != null) manaBar.dispose();
