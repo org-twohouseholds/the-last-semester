@@ -59,7 +59,6 @@ public class Server {
     private static void setupChangePassword(Javalin server, HikariDataSource ds) {
         server.put("/account/password", ctx -> {
 
-            // 1. Sitzungstoken aus dem Authorization-Header lesen
             String authorization = ctx.header("Authorization");
 
             if (authorization == null
@@ -70,20 +69,14 @@ public class Server {
 
             String sessionToken = authorization.substring(7);
 
-            // 2. Sitzungstoken hashen
             String sessionTokenHash = SessionTokens.hash(sessionToken);
 
-            // 3. Eingaben validieren
             ChangePassword.Request request = ChangePassword.validateRequest(ctx);
-
-            // 4. Passwort in der Datenbank ändern
             AccountStore.changePassword(
                     ds,
                     sessionTokenHash,
                     request.oldPassword(),
                     request.newPassword());
-
-            // 5. Erfolg zurückgeben
             ctx.status(204);
         });
     }

@@ -3,6 +3,7 @@ package com.extracreditstudios.thelastsemester.server.db;
 import com.extracreditstudios.thelastsemester.server.security.Passwords;
 import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.http.ConflictResponse;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.UnauthorizedResponse;
 
 import java.sql.Connection;
@@ -33,57 +34,49 @@ public class AccountStore {
         }
     }
 
-    public static void changePassword(
-            HikariDataSource ds,
-            String sessionTokenHash,
-            String oldPassword,
-            String newPassword) throws SQLException {
+   
+public static void changePassword(
+        HikariDataSource ds,
+        String sessionTokenHash,
+        String oldPassword,
+        String newPassword) throws SQLException {
 
-        try (Connection connection = ds.getConnection()) {
-            boolean previousAutoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
+    String oldHash;
 
-            try {
-                String oldHash;
+    try (Connection c = ds.getConnection();
+         PreparedStatement ps = c.prepareStatement(
+                 "SELECT password_hash FROM account WHERE session_token_hash = ?")) {
 
-                try (PreparedStatement ps = connection.prepareStatement(
-                        "SELECT password_hash FROM account "
-                                + "WHERE session_token_hash = ? FOR UPDATE")) {
+        ps.setString(1, sessionTokenHash);
 
-                    ps.setString(1, sessionTokenHash);
-
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (!rs.next()) {
-                            throw new UnauthorizedResponse("Invalid session");
-                        }
-                        oldHash = rs.getString("password_hash");
-                    }
-                }
-
-                if (!Passwords.verify(oldHash, oldPassword)) {
-                    throw new UnauthorizedResponse("Invalid password");
-                }
-
-                String newHash = Passwords.hash(newPassword);
-
-                try (PreparedStatement ps = connection.prepareStatement(
-                        "UPDATE account SET password_hash = ? "
-                                + "WHERE session_token_hash = ?")) {
-
-                    ps.setString(1, newHash);
-                    ps.setString(2, sessionTokenHash);
-                    ps.executeUpdate();
-                }
-
-                connection.commit();
-
-            } catch (SQLException | RuntimeException e) {
-                connection.rollback();
-                throw e;
-            } finally {
-                connection.setAutoCommit(previousAutoCommit);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (!rs.next()) {
+                throw new UnauthorizedResponse("Invalid session");
             }
+            oldHash = rs.getString(1);
         }
     }
+
+    if (!Passwords.verify(oldHash, oldPassword)) {
+        throw new ForbiddenResponse("Invalid password");
+    }
+
+    String newHash = Passwords.hash(newPassword);
+
+    try (Connection c = ds.getConnection();
+         PreparedStatement ps = c.prepareStatement(
+                 "UPDATE account SET password_hash = ? "
+                 + "WHERE session_token_hash = ? AND password_hash = ?")) {
+
+        ps.setString(1, newHash);
+        ps.setString(2, sessionTokenHash);
+        ps.setString(3, oldHash);
+
+        if (ps.executeUpdate() == 0) {
+            throw new ConflictResponse("Password was changed concurrently");
+        }
+    }
+}
+
 
 }
