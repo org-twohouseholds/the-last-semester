@@ -50,7 +50,6 @@ public class Match {
         executeAction(first, second);
         effectSystem.applyEffects(first.getCharacter(), second.getCharacter(), EffectTiming.AFTER_ATTACK);
 
-        // TODO team decision: does a fighter defeated by the first action still act?
         if (!second.getCharacter().isDefeated()) {
             effectSystem.applyEffects(second.getCharacter(), first.getCharacter(), EffectTiming.BEFORE_ATTACK);
             executeAction(second, first);

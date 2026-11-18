@@ -79,12 +79,16 @@ public class CharacterInstance {
     }
 
     public boolean flatHeal(int amount){
-        if(amount + this.currentHP > this.maxHP){
+        // A defeated character stays defeated, no matter how big the heal is.
+        if(this.currentHP <= 0){
+            return false;
+        }
+
+        this.currentHP += amount;
+
+        // Never heal above the maximum.
+        if(this.currentHP > this.maxHP){
             this.currentHP = this.maxHP;
-        }else if( this.currentHP <= 0){
-            return true;
-        }else{
-            this.currentHP += amount;
         }
         return true;
     }
