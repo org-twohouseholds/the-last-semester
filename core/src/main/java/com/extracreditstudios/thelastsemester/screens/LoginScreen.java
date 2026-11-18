@@ -17,7 +17,7 @@ import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 public class LoginScreen extends BaseScreen {
 
     /** TODO: LOGIN_URL nachfragen und ändern */
-    private static final String LOGIN_URL = "https://the-last-semester.twohouseholds.com/PLATZHALTER";
+    private static final String LOGIN_URL = "https://the-last-semester.twohouseholds.com/auth/login";
 
     /** TODO: Prüft der Server beim Login auch die Protokoll-Version? Wenn ja: welche? (ANNAHME: "1.0.0") */
     private static final String PROTOCOL_VERSION = "1.0.0";
