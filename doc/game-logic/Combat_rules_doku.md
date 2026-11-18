@@ -6,14 +6,14 @@
 
 ## 1. Spielablauf (Kurzüberblick)
 
-1. **Charakter auswählen:** Der Spieler wählt im Menü einen von **4 Charakteren**. Die passive Fähigkeit ist an den Charakter gebunden.
+1. **Charakter auswählen:** Der Spieler wählt im Menü einen von **4 Charakteren**. Jeder Charakter hat eine passive Fähigkeit und verfügt über die gleiche Basic Attack.
 2. **Initial Shop:** Vor dem ersten Kampf öffnet sich der Shop. Es werden **2 zufällige Perks** aus insgesamt **8 Perks** angeboten. Der erste Perk ist kostenlos. Das UI zeigt dem Spieler die beiden Optionen an.
 3. **Kostenlosen Perk auswählen:** Der Spieler wählt einen der beiden angebotenen Perks kostenlos aus. Dieser wird seiner Charakterinstanz hinzugefügt.
 
-   Zu Beginn des ersten Matches stehen dem Spieler somit zwei aktive Fähigkeiten zur Verfügung: die charaktereigene Fähigkeit und der kostenlos erworbene Perk. Die passive Fähigkeit wird automatisch berücksichtigt und muss nicht ausgewählt werden.
+   Zu Beginn des ersten Matches stehen dem Spieler somit zwei aktive Fähigkeiten zur Verfügung: die **Basic Attack**, die für alle Charaktere identisch ist, und der kostenlos erworbene **Shop-Perk**. Die charaktergebundene passive Fähigkeit wird automatisch berücksichtigt und muss nicht ausgewählt werden.
 
 4. **Erstes Match:** Zwei Teilnehmer treten gegeneinander an. Das UI zeigt HP, Energy, Match-Timer und Attack-Timer.
-5. **Aktion auswählen:** Beide Teilnehmer wählen verdeckt eine verfügbare aktive Fähigkeit.
+5. **Aktion auswählen:** Beide Teilnehmer wählen verdeckt eine verfügbare aktive Fähigkeit (Basic Attack oder erworbener Perk).
 6. **Beide Aktionen vorhanden?** Das System überprüft, ob beide Teilnehmer eine Fähigkeit ausgewählt haben.
 
    - **Ja:** Beide Aktionen liegen vor und die Kampfauflösung wird mit Schritt 7 fortgesetzt.
@@ -40,7 +40,7 @@ Der Ablauf wiederholt sich, bis ein Turniersieger feststeht.
 
 ### 5–7. Auswahl und Validierung
 
-Beide Teilnehmer wählen unabhängig voneinander eine Fähigkeit. Die Auswahl bleibt bis zur Kampfauflösung vor dem Gegner verborgen. Der Server prüft, ob die Ability zum Charakter gehört oder erworben wurde, ob ausreichend Energy vorhanden ist und ob der Teilnehmer die Aktion ausführen darf. Ungültige Eingaben verändern HP und Energy nicht.
+Beide Teilnehmer wählen unabhängig voneinander eine Fähigkeit. Die Auswahl bleibt bis zur Kampfauflösung vor dem Gegner verborgen. Der Server prüft, ob die gewählte Ability die allgemeine Basic Attack oder ein vom Teilnehmer erworbener Perk ist, ob ausreichend Energy vorhanden ist und ob der Teilnehmer die Aktion ausführen darf. Ungültige Eingaben verändern HP und Energy nicht.
 
 ### 8. Reihenfolge durch Speed
 
