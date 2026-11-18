@@ -78,9 +78,35 @@ public class AccountStore {
         }
     }
 
+    public static String findPasswordHash(HikariDataSource ds, String session_token_hash)
+        throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "SELECT password_hash FROM account WHERE session_token_hash = ?")) {
+            ps.setString(1, session_token_hash);
+            try (ResultSet result = ps.executeQuery()) {
+                return result.next() ? result.getString("password_hash") : null;
+            }
+        }
+    }
+
+    public static void deleteAccount(HikariDataSource ds, String session_token_hash,
+                                     String password_hash) throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "DELETE FROM account WHERE session_token_hash = ? " +
+                     "AND CAST(password_hash AS BINARY) = CAST(? AS BINARY)")) {
+            ps.setString(1, session_token_hash);
+            ps.setString(2, password_hash);
+            if (ps.executeUpdate() == 0) {
+                throw new ConflictResponse("Account changed before deletion");
+            }
+        }
+    }
+
     public static Account getAccount(HikariDataSource ds, String username) throws SQLException {
         try (Connection c = ds.getConnection();
-        PreparedStatement ps = c.prepareStatement("SELECT * FROM account WHERE username = ?")){
+             PreparedStatement ps = c.prepareStatement("SELECT * FROM account WHERE username = ?")) {
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -91,10 +117,11 @@ public class AccountStore {
         throw new NotFoundResponse("Account with username: " + username + " not found");
     }
 
-    public static void updateSessionToken(HikariDataSource ds, String username, String session_token_hash) throws SQLException {
-        try(Connection c = ds.getConnection();
-            PreparedStatement ps = c.prepareStatement(
-                "UPDATE account SET session_token_hash = ? WHERE username = ?")) {
+    public static void updateSessionToken(HikariDataSource ds, String username, String session_token_hash) throws
+        SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "UPDATE account SET session_token_hash = ? WHERE username = ?")) {
             ps.setString(1, session_token_hash);
             ps.setString(2, username);
             ps.executeUpdate();
@@ -102,9 +129,9 @@ public class AccountStore {
     }
 
     public static void setSessionTokenNull(HikariDataSource ds, String session_token_hash) throws SQLException {
-        try(Connection c = ds.getConnection();
-            PreparedStatement ps = c.prepareStatement(
-                "UPDATE account SET session_token_hash = NULL WHERE session_token_hash = ?")) {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "UPDATE account SET session_token_hash = NULL WHERE session_token_hash = ?")) {
             ps.setString(1, session_token_hash);
             ps.executeUpdate();
         }

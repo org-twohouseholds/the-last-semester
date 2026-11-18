@@ -5,6 +5,7 @@ import com.extracreditstudios.thelastsemester.server.db.AccountStore;
 import com.extracreditstudios.thelastsemester.server.security.Passwords;
 import com.extracreditstudios.thelastsemester.server.security.SessionTokens;
 import com.extracreditstudios.thelastsemester.server.shared.Protocol;
+import com.extracreditstudios.thelastsemester.server.shared.messages.Delete;
 import com.extracreditstudios.thelastsemester.server.shared.messages.Login;
 import com.extracreditstudios.thelastsemester.server.shared.messages.Logout;
 import com.extracreditstudios.thelastsemester.server.shared.messages.Register;
@@ -14,6 +15,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpResponseException;
 import io.javalin.http.UnauthorizedResponse;
 
@@ -28,6 +30,7 @@ public class Server {
         Javalin server = Javalin.create();
         server.before(Server::checkProtocolVersion);
         setupRegister(server, ds);
+        setupDelete(server, ds);
         setupLogin(server, ds);
         setupLogout(server, ds);
         setupChangePassword(server, ds);
@@ -61,7 +64,41 @@ public class Server {
         });
     }
 
-    private static void setupLogin(Javalin server, HikariDataSource ds) {
+    private static void setupDelete(Javalin server, HikariDataSource ds) {
+        server.post("/account/delete", ctx -> {
+
+            // Require the Bearer prefix before extracting the token.
+            String authorization = ctx.header("Authorization");
+            String bearerPrefix = "Bearer ";
+            if (authorization == null || !authorization.regionMatches(true, 0, bearerPrefix, 0, bearerPrefix.length())) {
+                ctx.header("WWW-Authenticate", "Bearer");
+                throw new UnauthorizedResponse("A valid session token is required");
+            }
+
+            // Reject an empty token after removing surrounding whitespace.
+            String session_token = authorization.substring(bearerPrefix.length()).strip();
+            if (session_token.isEmpty()) {
+                ctx.header("WWW-Authenticate", "Bearer");
+                throw new UnauthorizedResponse("A valid session token is required");
+            }
+
+            String session_token_hash = SessionTokens.hash(session_token);
+            String password_hash = AccountStore.findPasswordHash(ds, session_token_hash);
+            if (password_hash == null) {
+                ctx.header("WWW-Authenticate", "Bearer");
+                throw new UnauthorizedResponse("A valid session token is required");
+            }
+
+            Delete.Request request = Delete.validateRequest(ctx);
+
+            if (!Passwords.verify(password_hash, request.password())) {
+                throw new ForbiddenResponse("Incorrect password");
+            }
+            AccountStore.deleteAccount(ds, session_token_hash, password_hash);
+        });
+    }
+
+    private static void setupLogin (Javalin server, HikariDataSource ds){
         server.post("/auth/login", ctx -> {
             Login.Request request = Login.validateRequest(ctx);
             Account account = AccountStore.getAccount(ds, request.username());
@@ -73,22 +110,21 @@ public class Server {
                 AccountStore.updateSessionToken(ds, account.username(), session_token_hash);
                 ctx.json(new Login.Response(session_token));
                 ctx.status(200);
-            }
-            else {
+            } else {
                 throw new HttpResponseException(401, "Invalid password");
             }
         });
     }
 
-    private static void setupLogout(Javalin server, HikariDataSource ds) {
-        server.post("/auth/logout", ctx -> {
-            Logout.Request request = Logout.validateRequest(ctx);
-            String session_token = request.session_token();
-            String session_token_hash = SessionTokens.hash(session_token);
-            AccountStore.setSessionTokenNull(ds, session_token_hash);
-            ctx.status(204);
-        });
-    }
+        private static void setupLogout (Javalin server, HikariDataSource ds){
+            server.post("/auth/logout", ctx -> {
+                Logout.Request request = Logout.validateRequest(ctx);
+                String session_token = request.session_token();
+                String session_token_hash = SessionTokens.hash(session_token);
+                AccountStore.setSessionTokenNull(ds, session_token_hash);
+                ctx.status(204);
+            });
+        }
 
     private static void setupChangePassword(Javalin server, HikariDataSource ds) {
         server.put("/account/password", ctx -> {
