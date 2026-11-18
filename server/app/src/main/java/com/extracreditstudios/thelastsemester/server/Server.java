@@ -126,29 +126,25 @@ public class Server {
             });
         }
 
-    private static void setupChangePassword(Javalin server, HikariDataSource ds) {
-        server.put("/account/password", ctx -> {
+    
+private static void setupChangePassword(Javalin server, HikariDataSource ds) {
+    server.put("/account/password", ctx -> {
+        String authorization = ctx.header("Authorization");
 
-            String authorization = ctx.header("Authorization");
+        if (authorization == null
+                || !authorization.startsWith("Bearer ")
+                || authorization.substring(7).isBlank()) {
+            throw new UnauthorizedResponse("Missing or invalid session token");
+        }
 
-            if (authorization == null
-                    || !authorization.startsWith("Bearer ")
-                    || authorization.substring(7).isBlank()) {
-                throw new UnauthorizedResponse("Missing or invalid session token");
-            }
+        String sessionTokenHash = SessionTokens.hash(authorization.substring(7));
+        ChangePassword.Request request = ChangePassword.validateRequest(ctx);
 
-            String sessionToken = authorization.substring(7);
+        AccountStore.changePassword(ds, sessionTokenHash,
+                request.oldPassword(), request.newPassword());
 
-            String sessionTokenHash = SessionTokens.hash(sessionToken);
-
-            ChangePassword.Request request = ChangePassword.validateRequest(ctx);
-            AccountStore.changePassword(
-                    ds,
-                    sessionTokenHash,
-                    request.oldPassword(),
-                    request.newPassword());
-            ctx.status(204);
-        });
-    }
+        ctx.status(204);
+    });
+}
 
 }

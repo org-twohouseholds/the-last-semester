@@ -35,20 +35,13 @@ public class AccountStore {
         }
     }
 
-    public static void changePassword(
-            HikariDataSource ds,
-            String sessionTokenHash,
-            String oldPassword,
-            String newPassword) throws SQLException {
-
+    public static void changePassword(HikariDataSource ds, String sessionTokenHash,
+                                      String oldPassword, String newPassword) throws SQLException {
         String oldHash;
-
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
-                     "SELECT password_hash FROM account WHERE session_token_hash = ?")) {
-
+                 "SELECT password_hash FROM account WHERE session_token_hash = ?")) {
             ps.setString(1, sessionTokenHash);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (!rs.next()) {
                     throw new UnauthorizedResponse("Invalid session");
@@ -60,18 +53,15 @@ public class AccountStore {
         if (!Passwords.verify(oldHash, oldPassword)) {
             throw new ForbiddenResponse("Invalid password");
         }
-
         String newHash = Passwords.hash(newPassword);
 
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
-                     "UPDATE account SET password_hash = ? "
+                 "UPDATE account SET password_hash = ? "
                      + "WHERE session_token_hash = ? AND password_hash = ?")) {
-
             ps.setString(1, newHash);
             ps.setString(2, sessionTokenHash);
             ps.setString(3, oldHash);
-
             if (ps.executeUpdate() == 0) {
                 throw new ConflictResponse("Password was changed concurrently");
             }
