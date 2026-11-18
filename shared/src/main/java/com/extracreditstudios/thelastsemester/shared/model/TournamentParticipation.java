@@ -1,4 +1,5 @@
 package com.extracreditstudios.thelastsemester.shared.model;
+import java.util.List;
 
 /** One participant of one tournament. */
 public class TournamentParticipation implements Combatant {
