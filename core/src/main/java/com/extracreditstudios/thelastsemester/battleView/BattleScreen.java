@@ -43,6 +43,7 @@ public class BattleScreen extends ScreenAdapter {
     private float yousprite_yOffset;
     private float enemysprite_xOffset;
     private float enemysprite_yOffset;
+    private int enemysprite_rednessTimer;
 
     private StatusBar playerHp;
     private StatusBar playerMana;
@@ -123,7 +124,12 @@ public class BattleScreen extends ScreenAdapter {
 
         if (!battle.isOver()) {
             delta = Math.min(delta, 0.05f);
-            battle.update(delta);
+            String updateReturn = battle.update(delta);
+            if (updateReturn != null){
+                enemysprite_rednessTimer=10;
+                System.out.println(updateReturn);
+            }
+
         }
 
         if (battle.isOver()) {
@@ -151,7 +157,12 @@ public class BattleScreen extends ScreenAdapter {
             viewport.getWorldWidth(), viewport.getWorldHeight());
 
         batch.draw(youSprite, -10+youSprite_xOffset, 180+yousprite_yOffset, 170, 430);
+        if(enemysprite_rednessTimer>0) {
+            batch.setColor(1, 0.5f, 0.5f, 1);
+            enemysprite_rednessTimer-=1;
+        }
         batch.draw(enemySprite, 400+enemysprite_xOffset, 200+enemysprite_yOffset, -150, 400);
+        batch.setColor(1, 1, 1, 1);
 
         playerHp.draw(batch, battle.player.hp);
         playerMana.draw(batch, battle.player.mana);

@@ -14,11 +14,13 @@ public class Battle {
         }
 
         //Bei 0 wird die Runde ausgewertet und der Countdown startet neu
-        public void update(float delta) {
+        public String update(float delta) {
             timeLeft -= delta;
+            String r = null;
             if (timeLeft <= 0) {
-                resolveRound();
+                r = resolveRound();
             }
+            return r;
         }
 
         // Speichert den ausgewählten Button
@@ -28,8 +30,8 @@ public class Battle {
             }
         }
 
-        private void resolveRound() {
-
+        private String resolveRound() {
+        String r = null;
         // null= Spieler hat nichts gewählt
         Attack a = playerChoice >= 0 ? player.attacks[playerChoice] : null;
 
@@ -37,11 +39,13 @@ public class Battle {
         if (a != null && player.canUse(a)) {
                 player.mana -= a.manaCost;
                 enemy.hp = Math.max(0, enemy.hp - a.damage);
+                r = "y"+a.name;
             }
 
         //Nächste Runde
         playerChoice = -1;
         timeLeft = ROUND_TIME;
+        return r;
 
         }
 
