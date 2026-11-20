@@ -1,5 +1,5 @@
 
-package com.extracreditstudios.thelastsemester.screens;
+package com.extracreditstudios.thelastsemester.screens.settings;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
@@ -21,6 +21,10 @@ import com.badlogic.gdx.utils.JsonWriter;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.SerializationException;
 import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
+import com.extracreditstudios.thelastsemester.screens.BaseScreen;
+import com.extracreditstudios.thelastsemester.screens.DesignKit;
+import com.extracreditstudios.thelastsemester.screens.HomeScreen;
+import com.extracreditstudios.thelastsemester.screens.Session;
 import com.extracreditstudios.thelastsemester.screens.settings.RegisterScreen;
 
 public class LoginScreen extends BaseScreen {
