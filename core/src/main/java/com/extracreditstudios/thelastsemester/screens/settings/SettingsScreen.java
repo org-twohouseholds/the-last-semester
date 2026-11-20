@@ -17,7 +17,7 @@ import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 import com.extracreditstudios.thelastsemester.screens.BaseScreen;
 import com.extracreditstudios.thelastsemester.screens.DesignKit;
 import com.extracreditstudios.thelastsemester.screens.HomeScreen;
-import com.extracreditstudios.thelastsemester.screens.LoginScreen;
+import com.extracreditstudios.thelastsemester.screens.settings.LoginScreen;
 
 public class SettingsScreen extends BaseScreen {
 
