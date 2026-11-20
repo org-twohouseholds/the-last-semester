@@ -1,15 +1,16 @@
 #!/bin/sh
 
-# Build game server & starts containers
 # Windows: run with Git Bash
 
 set -e # stop on fail
 cd "$(dirname "$0")" # server/
 
-if [ ! -s secrets/db_pw ]; then # db_pw non-existent or empty
-  echo "Missing secrets/db_pw." >&2
-  exit 1
-fi
+for secret in db_pw db_tester_pw db_root_pw; do
+  if [ ! -s "secrets/$secret" ]; then # non-existent or empty
+    echo "Missing secrets/$secret." >&2
+    exit 1
+  fi
+done
 
-../gradlew :server:app:installDist
-docker compose up --build -d
+../gradlew :server:app:installDist # build game server
+docker compose up --build -d # start containers (detached mode)
