@@ -6,7 +6,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.extracreditstudios.thelastsemester.screens.LoginScreen;
+import com.extracreditstudios.thelastsemester.screens.HomeScreen;
 
 public class TheLastSemesterGame extends Game {
 
@@ -19,8 +19,8 @@ public class TheLastSemesterGame extends Game {
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
         prefs = Gdx.app.getPreferences("the-last-semester");
         //setScreen(new HomeScreen(this));
-        //setScreen(new CopyHomeScreen(this));
-        setScreen(new LoginScreen(this));
+        setScreen(new HomeScreen(this));
+        //setScreen(new LoginScreen(this));
     }
 
     public void goTo(Screen next) {

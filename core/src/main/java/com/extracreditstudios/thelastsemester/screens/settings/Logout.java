@@ -1,8 +1,9 @@
-package com.extracreditstudios.thelastsemester.screens;
+package com.extracreditstudios.thelastsemester.screens.settings;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.net.HttpRequestBuilder;
+import com.extracreditstudios.thelastsemester.screens.Session;
 
 public final class Logout {
 
