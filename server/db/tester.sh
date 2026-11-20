@@ -12,5 +12,5 @@ escaped_pw=$(printf '%s\n' "$pw" | sed -e 's/\\/\\\\/g' -e "s/'/''/g")
 
 MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot <<EOF
 CREATE USER 'tester'@'%' IDENTIFIED BY '${escaped_pw}';
-GRANT SELECT ON the_last_semester.* TO 'tester'@'%';
+GRANT SELECT (id, username, selected_character_id) ON the_last_semester.account TO 'tester'@'%';
 EOF
