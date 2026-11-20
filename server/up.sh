@@ -5,7 +5,7 @@
 set -e # stop on fail
 cd "$(dirname "$0")" # server/
 
-for secret in db_pw db_tester_pw; do
+for secret in db_pw db_tester_pw db_root_pw; do
   if [ ! -s "secrets/$secret" ]; then # non-existent or empty
     echo "Missing secrets/$secret." >&2
     exit 1

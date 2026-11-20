@@ -6,12 +6,13 @@ services:
     ports:
       - "127.0.0.1:3306:3306" # expose on localhost for manual queries
     environment:
-      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_pw
       MYSQL_DATABASE: the_last_semester
       MYSQL_USER: user
       MYSQL_PASSWORD_FILE: /run/secrets/db_pw
     secrets:
       - db_pw
+      - db_root_pw
       - db_tester_pw
     volumes:
       - db_data:/var/lib/mysql
@@ -55,5 +56,7 @@ volumes:
 secrets:
   db_pw:
     file: secrets/db_pw
+  db_root_pw:
+    file: secrets/db_root_pw
   db_tester_pw:
     file: secrets/db_tester_pw
