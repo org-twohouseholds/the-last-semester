@@ -14,6 +14,7 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpResponseException;
+import io.javalin.http.NotFoundResponse;
 import io.javalin.http.UnauthorizedResponse;
 
 import java.io.IOException;
@@ -80,6 +81,31 @@ public class Server {
 
     private static void setupDelete(Javalin server, HikariDataSource ds) {
         server.post("/account/delete", ctx -> {
+            String authorization = ctx.header("Authorization");
+            if ((authorization == null || authorization.isBlank()) && ctx.body().isBlank()) {
+                ctx.header("WWW-Authenticate", "Bearer");
+                throw new UnauthorizedResponse("A valid session token is required");
+            }
+
+            Delete.Request request = MessageValidator.validateDeleteRequest(ctx);
+
+            if (request.username() != null) {
+                Account account;
+                try {
+                    account = AccountStore.getAccount(ds, request.username());
+                } catch (NotFoundResponse e) {
+                    throw new ForbiddenResponse("Invalid credentials");
+                }
+
+                if (!Passwords.verify(account.password_hash(), request.password())) {
+                    throw new ForbiddenResponse("Invalid credentials");
+                }
+
+                AccountStore.deleteAccountByUsername(ds, account.username(), account.password_hash());
+                ctx.status(204);
+                return;
+            }
+
             String session_token = checkAndGetSessionToken(ctx);
             String session_token_hash = SessionTokens.hash(session_token);
             String password_hash = AccountStore.findPasswordHash(ds, session_token_hash);
@@ -88,12 +114,12 @@ public class Server {
                 throw new UnauthorizedResponse("A valid session token is required");
             }
 
-            Delete.Request request = MessageValidator.validateDeleteRequest(ctx);
-
             if (!Passwords.verify(password_hash, request.password())) {
                 throw new ForbiddenResponse("Incorrect password");
             }
+
             AccountStore.deleteAccount(ds, session_token_hash, password_hash);
+            ctx.status(204);
         });
     }
 

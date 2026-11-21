@@ -48,12 +48,15 @@ public class MessageValidator {
         try {
             JsonNode body = DELETE_REQUEST_READER.readValue(ctx.body());
             JsonNode password = body.path("password");
-            if (body.isObject() && body.size() == 1 && password.isTextual()
-                && !password.textValue().isEmpty()) {
-                return new Delete.Request(password.textValue());
+            JsonNode username = body.path("username");
+            boolean hasUsername = !username.isMissingNode();
+            if (body.isObject() && body.size() == (hasUsername ? 2 : 1)
+                && password.isTextual() && !password.textValue().isEmpty()
+                && (!hasUsername || validateUsername(username.textValue()))) {
+                return new Delete.Request(username.textValue(), password.textValue());
             }
         } catch (JsonProcessingException ignored) {}
-        throw new BadRequestResponse("Expected a JSON body with a password");
+        throw new BadRequestResponse("Expected a JSON body with a password and an optional valid username");
     }
 
     public static Login.Request validateLoginRequest(Context ctx) {

@@ -82,11 +82,21 @@ public class AccountStore {
 
     public static void deleteAccount(HikariDataSource ds, String session_token_hash,
                                      String password_hash) throws SQLException {
+        deleteMatchingAccount(ds, "DELETE FROM account WHERE session_token_hash = ? ",
+            session_token_hash, password_hash);
+    }
+
+    public static void deleteAccountByUsername(HikariDataSource ds, String username,
+                                                String password_hash) throws SQLException {
+        deleteMatchingAccount(ds, "DELETE FROM account WHERE username = ? ", username, password_hash);
+    }
+
+    private static void deleteMatchingAccount(HikariDataSource ds, String sql,
+                                              String accountIdentifier, String password_hash) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
-                 "DELETE FROM account WHERE session_token_hash = ? " +
-                     "AND CAST(password_hash AS BINARY) = CAST(? AS BINARY)")) {
-            ps.setString(1, session_token_hash);
+                 sql + "AND CAST(password_hash AS BINARY) = CAST(? AS BINARY)")) {
+            ps.setString(1, accountIdentifier);
             ps.setString(2, password_hash);
             if (ps.executeUpdate() == 0) {
                 throw new ConflictResponse("Account changed before deletion");
