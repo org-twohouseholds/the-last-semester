@@ -9,7 +9,7 @@ import java.util.UUID;
  * Only that player's selected ability is included; the opponent has a readiness flag.
  * Deadlines are nullable Unix epoch milliseconds when no timer has been set.
  */
-public record MatchDTO(UUID matchId, long stateVersion, MatchStatus status, int turnNumber,
+public record MatchDTO(String matchId, long stateVersion, MatchStatus status, int turnNumber,
                        long serverTimeMillis, Long turnDeadlineMillis, Long matchDeadlineMillis,
                        CombatantDTO self, CombatantDTO opponent, List<AbilityDTO> myAbilities,
                        AbilityDTO mySubmittedAbility, boolean opponentHasSubmitted,
