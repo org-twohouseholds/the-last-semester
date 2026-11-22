@@ -1,4 +1,4 @@
-package com.extracreditstudios.thelastsemester.screens;
+package com.extracreditstudios.thelastsemester.screens.old;
 
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;

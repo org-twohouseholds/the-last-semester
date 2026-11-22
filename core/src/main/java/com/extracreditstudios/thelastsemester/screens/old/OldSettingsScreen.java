@@ -1,4 +1,4 @@
-package com.extracreditstudios.thelastsemester.screens;
+package com.extracreditstudios.thelastsemester.screens.old;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -9,8 +9,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
+import com.extracreditstudios.thelastsemester.screens.BaseScreen;
+import com.extracreditstudios.thelastsemester.screens.HomeScreen;
 
-public class CopySettingsScreen extends BaseScreen {
+public class OldSettingsScreen extends BaseScreen {
 
     private static final String TAG = "Settings";
 
@@ -23,7 +25,7 @@ public class CopySettingsScreen extends BaseScreen {
     private final UIFactory ui;
     private final Skin lobbySkin;
 
-    public CopySettingsScreen(TheLastSemesterGame game) {
+    public OldSettingsScreen(TheLastSemesterGame game) {
         super(game);
         this.lobbySkin = new Skin(Gdx.files.internal("ui/lobby/design_sammlung.json"));
         this.ui = new UIFactory(lobbySkin);
@@ -94,7 +96,7 @@ public class CopySettingsScreen extends BaseScreen {
     @Override
     protected void onBack() {
         // game.goTo(new HomeScreen(game));
-        game.goTo(new CopyHomeScreen(game));
+        game.goTo(new HomeScreen(game));
     }
 
     @Override

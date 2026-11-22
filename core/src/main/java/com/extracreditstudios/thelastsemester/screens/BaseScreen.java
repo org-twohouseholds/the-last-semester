@@ -20,7 +20,8 @@ import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 public abstract class BaseScreen extends ScreenAdapter {
 
     /** Bildschirmgröße im HOCHFORMAT. */
-    public static final float WORLD_WIDTH = 450f;
+    //public static final float WORLD_WIDTH = 450f;
+    public static final float WORLD_WIDTH = 400f;
     public static final float WORLD_HEIGHT = 800f;
 
     /** Einheitliche Button-Größe für alle Menüs */

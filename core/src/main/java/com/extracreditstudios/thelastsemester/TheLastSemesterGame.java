@@ -1,13 +1,12 @@
 package com.extracreditstudios.thelastsemester;
 
-import com.badlogic.gdx.Game;                                       // ✅ [1]
-import com.badlogic.gdx.Gdx;                                        // ✅ [3]
-import com.badlogic.gdx.Input;                                      // ✅ [3]
-import com.badlogic.gdx.Preferences;                                // ✅ [2]
-import com.badlogic.gdx.Screen;                                     // ✅ [4]
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;                     // ✅ [2]
-import com.extracreditstudios.thelastsemester.screens.CopyHomeScreen;
-import com.extracreditstudios.thelastsemester.screens.HomeScreen;   // ✅ [3]
+import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.extracreditstudios.thelastsemester.screens.HomeScreen;
 
 public class TheLastSemesterGame extends Game {
 
@@ -20,7 +19,8 @@ public class TheLastSemesterGame extends Game {
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
         prefs = Gdx.app.getPreferences("the-last-semester");
         //setScreen(new HomeScreen(this));
-        setScreen(new CopyHomeScreen(this));
+        setScreen(new HomeScreen(this));
+        //setScreen(new LoginScreen(this));
     }
 
     public void goTo(Screen next) {
