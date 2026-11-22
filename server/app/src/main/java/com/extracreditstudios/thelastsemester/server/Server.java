@@ -141,9 +141,9 @@ public class Server {
 
     private static void setupLogout(Javalin server, DataSource ds) {
         server.post("/api/auth/logout", ctx -> {
-            String session_token = checkAndGetSessionToken(ctx);
-            String session_token_hash = SessionTokens.hash(session_token);
-            AccountStore.setSessionTokenNull(ds, session_token_hash);
+            String sessionToken = checkAndGetSessionToken(ctx);
+            String sessionTokenHash = SessionTokens.hash(sessionToken);
+            AccountStore.setSessionTokenNull(ds, sessionTokenHash);
             ctx.status(204);
         });
     }
