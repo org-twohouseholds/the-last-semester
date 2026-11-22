@@ -11,28 +11,47 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import io.javalin.Javalin;
+import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpResponseException;
 import io.javalin.http.UnauthorizedResponse;
+import io.javalin.http.staticfiles.Location;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Consumer;
+
 import javax.sql.DataSource;
 
 public class Server {
 
     public static void main(String[] args) throws IOException {
         HikariDataSource ds = setupDB();
-        Javalin server = Javalin.create();
-        server.before(Server::checkProtocolVersion);
+        Javalin server = createServer(ds);
+        server.start(7070);
+    }
+
+    static Javalin createServer(DataSource ds) {
+        return createServer(ds, cfg -> {
+        });
+    }
+
+    // extraConfig lets tests change the setup
+    static Javalin createServer(DataSource ds, Consumer<JavalinConfig> extraConfig) {
+        Javalin server = Javalin.create(cfg -> {
+            // serves src/main/resources/static with index.html at /
+            cfg.staticFiles.add("/static", Location.CLASSPATH);
+            extraConfig.accept(cfg);
+        });
+        server.before("/api/*", Server::checkProtocolVersion);
         setupRegister(server, ds);
         setupDelete(server, ds);
         setupLogin(server, ds);
         setupLogout(server, ds);
         setupChangePassword(server, ds);
-        server.start(7070);
+        return server;
     }
 
     private static HikariDataSource setupDB() throws IOException {
