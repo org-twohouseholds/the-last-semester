@@ -11,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.util.OptionalInt;
 import javax.sql.DataSource;
 
 public class AccountStore {
@@ -81,16 +80,14 @@ public class AccountStore {
         }
     }
 
-    public static OptionalInt findAccountIdBySessionTokenHash(DataSource ds, String session_token_hash)
+    public static String findUsernameBySessionToken(DataSource ds, String session_token_hash)
         throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
-                 "SELECT id FROM account WHERE session_token_hash = ?")) {
+                 "SELECT username FROM account WHERE session_token_hash = ?")) {
             ps.setString(1, session_token_hash);
             try (ResultSet result = ps.executeQuery()) {
-                return result.next()
-                    ? OptionalInt.of(result.getBigDecimal("id").intValueExact())
-                    : OptionalInt.empty();
+                return result.next() ? result.getString("username") : null;
             }
         }
     }

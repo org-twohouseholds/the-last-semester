@@ -173,13 +173,13 @@ public class Server {
 
     private static void selectAction(Javalin server, DataSource ds) {
         server.post("/api/fight/select", ctx -> {
-            String session_token = checkAndGetSessionToken(ctx);
-            String session_token_hash = SessionTokens.hash(session_token);
-            int account_id = AccountStore.findAccountIdBySessionTokenHash(ds, session_token_hash)
-                .orElseThrow(() -> {
-                    ctx.header("WWW-Authenticate", "Bearer");
-                    return new UnauthorizedResponse("A valid session token is required");
-                });
+            String session_token_hash = SessionTokens.hash(checkAndGetSessionToken(ctx));
+            String username = AccountStore.findUsernameBySessionToken(ds, session_token_hash);
+
+            if (username == null) {
+                ctx.header("WWW-Authenticate", "Bearer");
+                throw new UnauthorizedResponse("A valid session token is required");
+            }
 
             SelectAction.Request request = MessageValidator.validateSelectAction(ctx);
             throw new HttpResponseException(501, "Select Action is not implemented yet");
