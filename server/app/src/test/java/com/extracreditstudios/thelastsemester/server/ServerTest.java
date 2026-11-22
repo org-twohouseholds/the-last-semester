@@ -78,15 +78,15 @@ class ServerTest {
 
     @ParameterizedTest(name = "{0} {1}")
     @CsvSource({
-        "POST, /auth/login",
-        "GET, /auth/login",
-        "HEAD, /auth/login",
-        "POST, /auth/register",
-        "POST, /auth/logout",
-        "PUT, /account/password",
-        "POST, /account/delete",
-        "GET, /account/delete",
-        "GET, /auth/unknown",
+        "POST, /api/auth/login",
+        "GET, /api/auth/login",
+        "HEAD, /api/auth/login",
+        "POST, /api/auth/register",
+        "POST, /api/auth/logout",
+        "PUT, /api/account/password",
+        "POST, /api/account/delete",
+        "GET, /api/account/delete",
+        "GET, /api/auth/unknown",
     })
     void apiPathsRequireProtocolVersion(String method, String path) throws Exception {
         assertEquals(426, send(request(method, path)).statusCode());
@@ -94,8 +94,8 @@ class ServerTest {
 
     @ParameterizedTest(name = "{0} {1}")
     @CsvSource({
-        "GET, /auth/login",
-        "POST, /auth/login",
+        "GET, /api/auth/login",
+        "POST, /api/auth/login",
     })
     void apiPathsRejectWrongProtocolVersion(String method, String path) throws Exception {
         HttpRequest.Builder request = request(method, path).header("protocol-version", "0.0.0");
@@ -106,7 +106,7 @@ class ServerTest {
     @Test
     void apiPathWithProtocolVersionReachesHandler() throws Exception {
         // An empty body fails validation before the handler touches the database.
-        HttpRequest.Builder request = request("POST", "/auth/login")
+        HttpRequest.Builder request = request("POST", "/api/auth/login")
             .header("protocol-version", Protocol.VERSION)
             .header("Content-Type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString("{}"));
@@ -138,7 +138,7 @@ class ServerTest {
             assertEquals(200, page.statusCode());
             assertHtml(page);
 
-            assertEquals(426, send(request(prefixedUrl, "POST", "/auth/login")).statusCode());
+            assertEquals(426, send(request(prefixedUrl, "POST", "/api/auth/login")).statusCode());
             assertEquals(404, send(request(prefixedUrl, "GET", "/favicon.ico")).statusCode());
         } finally {
             prefixed.stop();
