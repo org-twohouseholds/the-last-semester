@@ -7,11 +7,17 @@ import com.extracreditstudios.thelastsemester.shared.messages.Delete;
 import com.extracreditstudios.thelastsemester.shared.messages.Login;
 import com.extracreditstudios.thelastsemester.shared.messages.Protocol;
 import com.extracreditstudios.thelastsemester.shared.messages.Register;
+import com.extracreditstudios.thelastsemester.shared.messages.game.LobbyDTO;
+import com.extracreditstudios.thelastsemester.shared.messages.game.LobbyPlayerDTO;
+import com.extracreditstudios.thelastsemester.shared.model.GamePhase;
+import com.extracreditstudios.thelastsemester.shared.model.Lobby;
+import com.extracreditstudios.thelastsemester.shared.model.Player;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
+import io.javalin.http.ConflictResponse;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpResponseException;
@@ -21,11 +27,28 @@ import io.javalin.http.staticfiles.Location;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
 public class Server {
+
+    private static final ScheduledExecutorService scheduler =
+        Executors.newSingleThreadScheduledExecutor();
+    private static final Map<Lobby, ScheduledFuture<?>> lobbyTimers = new ConcurrentHashMap<>();
+    private static final long START_LOBBY_AFTER_MILLIS = 60_000;
+
+    private static final AtomicInteger nextLobbyId = new AtomicInteger(0);
+    private static final Set<Lobby> lobbies = ConcurrentHashMap.newKeySet();
+    private static final Map<String, Player> username2Player = new ConcurrentHashMap<>();
 
     public static void main(String[] args) throws IOException {
         HikariDataSource ds = setupDB();
@@ -54,6 +77,10 @@ public class Server {
         setupLogin(server, ds);
         setupLogout(server, ds);
         setupChangePassword(server, ds);
+        setupJoinLobby(server, ds);
+        setupQuitLobby(server, ds);
+        setupLobbyPolling(server, ds);
+        setupMatchPolling(server, ds);
         return server;
     }
 
@@ -165,6 +192,118 @@ public class Server {
                 request.new_password());
 
             ctx.status(204);
+        });
+    }
+
+    private static void setupJoinLobby(Javalin server, DataSource ds) {
+        server.post("/api/lobby/join", ctx -> {
+            String sessionToken = checkAndGetSessionToken(ctx);
+            String sessionTokenHash = SessionTokens.hash(sessionToken);
+            Account account = AccountStore.getAccountBySessionTokenHash(ds, sessionTokenHash);
+            Player player = username2Player.computeIfAbsent(account.username(), Player::new);
+            synchronized (lobbies) {
+                if (player.getLobby() != null) {
+                    throw new ConflictResponse("Already in a lobby");
+                }
+                Lobby lobby = lobbies.stream()
+                    .filter(l -> l.getPhase() == GamePhase.LOBBY)
+                    .filter(l -> l.getPlayerList().size() < l.getMaxPlayers())
+                    .findFirst()
+                    .orElseGet(Server::createLobby);
+                lobby.getPlayerList().add(player);
+                player.setLobby(lobby);
+                lobby.incrementStateVersion();
+                if (lobby.getPlayerList().size() == lobby.getMaxPlayers()) {
+                    startLobby(lobby);
+                }
+            }
+            ctx.status(204);
+        });
+    }
+
+    private static Lobby createLobby() {
+        Lobby lobby = new Lobby(String.valueOf(nextLobbyId.getAndAdd(1)), START_LOBBY_AFTER_MILLIS);
+        lobbies.add(lobby);
+        lobbyTimers.put(lobby, scheduler.schedule(() -> {
+            synchronized (lobbies) {
+                startLobby(lobby);
+            }
+        }, START_LOBBY_AFTER_MILLIS, TimeUnit.MILLISECONDS));
+        return lobby;
+    }
+
+    private static void startLobby(Lobby lobby) {
+        if (lobby.getPhase() != GamePhase.LOBBY ||
+            !lobbies.contains(lobby)) return;
+        ScheduledFuture<?> timer = lobbyTimers.remove(lobby);
+        if (timer != null) timer.cancel(false);
+        int botNumber = 1;
+        while (lobby.getPlayerList().size() < lobby.getMaxPlayers()) {
+            Player bot = Player.bot(botNumber++, lobby);
+            lobby.getPlayerList().add(bot);
+        }
+        // TODO: create tournament + first round of matches here
+        lobby.setPhase(GamePhase.FIGHT);
+        lobby.setDeadlineMillis(null);
+        lobby.incrementStateVersion();
+    }
+
+    private static void setupQuitLobby(Javalin server, DataSource ds) {
+        server.post("/api/lobby/quit", ctx -> {
+            String sessionToken = checkAndGetSessionToken(ctx);
+            String sessionTokenHash = SessionTokens.hash(sessionToken);
+            Account account = AccountStore.getAccountBySessionTokenHash(ds, sessionTokenHash);
+            Player player = username2Player.get(account.username());
+            synchronized (lobbies) {
+                if (player == null || player.getLobby() == null) {
+                    throw new ConflictResponse("Not in a lobby");
+                }
+                Lobby lobby = lobbies.stream()
+                    .filter(l -> l.getPlayerList().contains(player))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException(
+                        "Player " + player.getUsername() + " is marked inLobby but is in no " +
+                            "lobby"));
+                if (lobby.getPhase() != GamePhase.LOBBY) {
+                    throw new ConflictResponse("Game already started");
+                }
+                lobby.getPlayerList().remove(player);
+                player.setLobby(null);
+                lobby.incrementStateVersion();
+                if (lobby.getPlayerList().stream().allMatch(Player::isBot)) {
+                    ScheduledFuture<?> timer = lobbyTimers.remove(lobby);
+                    if (timer != null) timer.cancel(false);
+                    lobbies.remove(lobby);
+                }
+            }
+            ctx.status(204);
+        });
+    }
+
+    private static void setupLobbyPolling(Javalin server, DataSource ds) {
+        server.get("/api/lobby", ctx -> {
+            String sessionToken = checkAndGetSessionToken(ctx);
+            String sessionTokenHash = SessionTokens.hash(sessionToken);
+            Account account = AccountStore.getAccountBySessionTokenHash(ds, sessionTokenHash);
+            Player player = username2Player.get(account.username());
+            Lobby lobby = player.getLobby();
+            ctx.json(new LobbyDTO(lobby.getLobbyID(), lobby.getStateVersion(), lobby.getPhase(),
+                lobby.getDeadlineMillis(), lobby.getMaxPlayers(), lobby.getPlayerList()
+                .stream()
+                .map(p -> new LobbyPlayerDTO(p.getUsername(), p.getCharacter().name(), p.isBot()))
+                .toList()));
+            ctx.status(200);
+        });
+    }
+
+    private static void setupMatchPolling(Javalin server, DataSource ds) {
+        server.get("/api/fight", ctx -> {
+            String sessionToken = checkAndGetSessionToken(ctx);
+            String sessionTokenHash = SessionTokens.hash(sessionToken);
+            Account account = AccountStore.getAccountBySessionTokenHash(ds, sessionTokenHash);
+            Player player = username2Player.get(account.username());
+            Lobby lobby = player.getLobby();
+            // TODO
         });
     }
 
