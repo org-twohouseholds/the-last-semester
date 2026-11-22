@@ -91,7 +91,7 @@ public class Server {
     }
 
     private static void setupRegister(Javalin server, DataSource ds) {
-        server.post("/auth/register", ctx -> {
+        server.post("/api/auth/register", ctx -> {
             Register.Request request = MessageValidator.validateRegisterRequest(ctx);
             String password_hash = Passwords.hash(request.password());
             String session_token = SessionTokens.newToken();
@@ -103,7 +103,7 @@ public class Server {
     }
 
     private static void setupDelete(Javalin server, DataSource ds) {
-        server.post("/account/delete", ctx -> {
+        server.post("/api/account/delete", ctx -> {
             String session_token = checkAndGetSessionToken(ctx);
             String session_token_hash = SessionTokens.hash(session_token);
             String password_hash = AccountStore.findPasswordHash(ds, session_token_hash);
@@ -122,7 +122,7 @@ public class Server {
     }
 
     private static void setupLogin(Javalin server, DataSource ds) {
-        server.post("/auth/login", ctx -> {
+        server.post("/api/auth/login", ctx -> {
             Login.Request request = MessageValidator.validateLoginRequest(ctx);
             Account account = AccountStore.getAccount(ds, request.username());
             String password = request.password();
@@ -140,7 +140,7 @@ public class Server {
     }
 
     private static void setupLogout(Javalin server, DataSource ds) {
-        server.post("/auth/logout", ctx -> {
+        server.post("/api/auth/logout", ctx -> {
             String session_token = checkAndGetSessionToken(ctx);
             String session_token_hash = SessionTokens.hash(session_token);
             AccountStore.setSessionTokenNull(ds, session_token_hash);
@@ -150,7 +150,7 @@ public class Server {
 
 
     private static void setupChangePassword(Javalin server, DataSource ds) {
-        server.put("/account/password", ctx -> {
+        server.put("/api/account/password", ctx -> {
             String authorization = ctx.header("Authorization");
 
             if (authorization == null || !authorization.startsWith("Bearer ") ||
