@@ -4,6 +4,7 @@ import com.extracreditstudios.thelastsemester.shared.messages.ChangePassword;
 import com.extracreditstudios.thelastsemester.shared.messages.Delete;
 import com.extracreditstudios.thelastsemester.shared.messages.Login;
 import com.extracreditstudios.thelastsemester.shared.messages.Register;
+import com.extracreditstudios.thelastsemester.shared.messages.SelectAction;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -69,6 +70,15 @@ public class MessageValidator {
             .check(r -> validateUsername(r.username()),
                 "Username must be 3-20 characters: letters, digits, _")
             .check(r -> validatePassword(r.password()), "Password must be 15-128 characters")
+            .get();
+    }
+
+    public static SelectAction.Request validateSelectAction(Context ctx) {
+        return ctx.bodyValidator(SelectAction.Request.class)
+            .check(r -> r.tournament() != null && !r.tournament().isBlank(), "Tournament is required")
+            .check(r -> r.fight() != null, "Fight is required")
+            .check(r -> r.turn() != null && r.turn() >= 1, "Turn must be at least 1")
+            .check(r -> r.actionIndex() != null && r.actionIndex() >= 0, "Action index must be at least 0")
             .get();
     }
 

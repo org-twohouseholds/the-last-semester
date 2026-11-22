@@ -31,6 +31,7 @@ public class Server {
         setupLogin(server, ds);
         setupLogout(server, ds);
         setupChangePassword(server, ds);
+        selectAction(server, ds);
         server.start(7070);
     }
 
@@ -59,7 +60,7 @@ public class Server {
         }
 
         String session_token = authorization.substring(bearerPrefix.length()).strip();
-        if(!MessageValidator.validateSessionToken(session_token)) {
+        if (!MessageValidator.validateSessionToken(session_token)) {
             ctx.header("WWW-Authenticate", "Bearer");
             throw new UnauthorizedResponse("Invalid session token");
         }
@@ -97,7 +98,7 @@ public class Server {
         });
     }
 
-    private static void setupLogin (Javalin server, HikariDataSource ds){
+    private static void setupLogin(Javalin server, HikariDataSource ds) {
         server.post("/auth/login", ctx -> {
             Login.Request request = MessageValidator.validateLoginRequest(ctx);
             Account account = AccountStore.getAccount(ds, request.username());
@@ -115,34 +116,37 @@ public class Server {
         });
     }
 
-        private static void setupLogout (Javalin server, HikariDataSource ds){
-            server.post("/auth/logout", ctx -> {
-                String session_token = checkAndGetSessionToken(ctx);
-                String session_token_hash = SessionTokens.hash(session_token);
-                AccountStore.setSessionTokenNull(ds, session_token_hash);
-                ctx.status(204);
-            });
-        }
+    private static void setupLogout(Javalin server, HikariDataSource ds) {
+        server.post("/auth/logout", ctx -> {
+            String session_token = checkAndGetSessionToken(ctx);
+            String session_token_hash = SessionTokens.hash(session_token);
+            AccountStore.setSessionTokenNull(ds, session_token_hash);
+            ctx.status(204);
+        });
+    }
 
 
-private static void setupChangePassword(Javalin server, HikariDataSource ds) {
-    server.put("/account/password", ctx -> {
-        String authorization = ctx.header("Authorization");
+    private static void setupChangePassword(Javalin server, HikariDataSource ds) {
+        server.put("/account/password", ctx -> {
+            String authorization = ctx.header("Authorization");
 
-        if (authorization == null
-                || !authorization.startsWith("Bearer ")
-                || authorization.substring(7).isBlank()) {
-            throw new UnauthorizedResponse("Missing or invalid session token");
-        }
+            if (authorization == null || !authorization.startsWith("Bearer ") || authorization.substring(7).isBlank()) {
+                throw new UnauthorizedResponse("Missing or invalid session token");
+            }
 
-        String sessionTokenHash = SessionTokens.hash(authorization.substring(7));
-        ChangePassword.Request request = MessageValidator.validateChangePasswordRequest(ctx);
+            String sessionTokenHash = SessionTokens.hash(authorization.substring(7));
+            ChangePassword.Request request = MessageValidator.validateChangePasswordRequest(ctx);
 
-        AccountStore.changePassword(ds, sessionTokenHash,
-                request.old_password(), request.new_password());
+            AccountStore.changePassword(ds, sessionTokenHash, request.old_password(), request.new_password());
 
-        ctx.status(204);
-    });
-}
+            ctx.status(204);
+        });
+    }
+
+    private static void selectAction(Javalin server, HikariDataSource ds) {
+        server.post("/fight/select", ctx -> {
+            throw new HttpResponseException(501, "Select Action is not implemented yet");
+        });
+    }
 
 }
