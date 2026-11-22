@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.scenes.scene2d.utils.FocusListener;
 import com.badlogic.gdx.utils.Align;
+import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 
 public class ChangePasswordScreen extends ScreenAdapter {
     private Stage stage;
@@ -96,7 +97,7 @@ public class ChangePasswordScreen extends ScreenAdapter {
         backBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                ((Game) Gdx.app.getApplicationListener()).setScreen(new AccountSettingsScreen());
+                ((Game) Gdx.app.getApplicationListener()).setScreen(new CopySettingsScreen((TheLastSemesterGame) Gdx.app.getApplicationListener()));
             }
         });
     }

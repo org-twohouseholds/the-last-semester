@@ -35,28 +35,36 @@ public class CharacterSelectionScreen extends ScreenAdapter{
         Label titleLabel = new Label("Character", skin, "title");
         mainTable.add(titleLabel).colspan(2).padBottom(30).row();
 
-        String[] characters = {
-            "The Hacker", "The Forever Student",
-            "The Ghost", "The Flirt",
-            "Prof", "Sweet Grandma",
-            "The Caffeine Addict", "The Overachiever",
-            "The Party Animal", "The Commuter",
-            "The Library Camper", "The Procrastinator"
+        String[] characters = {"The hacker", "The esoteric", "The bitter one", "The alcoholic"};
+        String[] images = {"The hacker.png", "The esoteric.png", "The bitter one.png", "The alcoholic.png"};
+        String[] descriptions = {
+            "He doesn't care about anything other than his laptop and IT security. He's always hoarding chargers and power outlets. He's not much of a talker, but you know he's your guy when you need something fixed. But don't even think about talking to him if you don't have Arch Linux installed.",
+            "She's young and new to teaching and she still hasn't figured out what kind of professor she wants to be. On one hand, she remembers exactly what it was like to be a student, so she wants to be liked and tries to be easygoing. On the other hand, the moment she realizes she's not being taken seriously, she flips a switch and becomes the strictest professor you've ever met. Talking to her is like trying to regulate a broken thermostat.",
+            "She hates her job. She only took it because she had to. Her subject is something she couldn't care less about, just like her students or anyone's personal circumstances. Yet somehow, she's always got her nose in everyone's business and never shuts up about it. She loves talking about winning the lottery and quitting her job. Because why be miserable alone when we can make it a group activity?",
+            "Nothing in his life has gone according to plan. He's a caring guy who tries his best. But he's an absolute hot mess, just like his lectures. Drinking his beloved liquor, during working hours is the only thing keeping him afloat. He never answers emails of any kind, but you can always find him on campus, dancing and drinking with his students."
         };
 
         Table gridTable = new Table();
         for (int i = 0; i < characters.length; i++) {
-            //ImageTextButton charButton = new ImageTextButton(characters[i], skin, "default");
             TextButton charButton = new TextButton(characters[i], skin, "default");
-            if (characters[i].equals("The Ghost")) {
-                charButton.setChecked(true);
-            }
 
-            gridTable.add(charButton).width(240).height(80).pad(10);
+            charButton.getLabel().setAlignment(com.badlogic.gdx.utils.Align.center);
 
-            if ((i + 1) % 2 == 0) {
-                gridTable.row();
-            }
+            final String name = characters[i];
+            final String desc = descriptions[i];
+            final String img = images[i];
+
+            charButton.addListener(new ClickListener() {
+                @Override
+                public void clicked(InputEvent event, float x, float y) {
+                    com.extracreditstudios.thelastsemester.TheLastSemesterGame game =
+                        (com.extracreditstudios.thelastsemester.TheLastSemesterGame) Gdx.app.getApplicationListener();
+
+                    game.setScreen(new CharacterInfoScreen(game, name, desc, img));
+                }
+            });
+
+            gridTable.add(charButton).width(350).height(80).pad(10).row();
         }
 
         mainTable.add(gridTable).colspan(2).padBottom(40).row();
@@ -65,7 +73,9 @@ public class CharacterSelectionScreen extends ScreenAdapter{
         backButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                System.out.println("Navigating back to Home Screen...");
+                com.extracreditstudios.thelastsemester.TheLastSemesterGame game =
+                    (com.extracreditstudios.thelastsemester.TheLastSemesterGame) Gdx.app.getApplicationListener();
+                game.setScreen(new CopyHomeScreen(game));
             }
         });
 

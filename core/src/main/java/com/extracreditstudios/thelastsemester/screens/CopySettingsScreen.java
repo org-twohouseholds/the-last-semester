@@ -41,6 +41,7 @@ public class CopySettingsScreen extends BaseScreen {
         root.add(title).width(UIFactory.FULL_BUTTON_WIDTH).height(60).padBottom(24).row();
 
         root.add(lobbyButton("Privacy Policy", () -> Gdx.net.openURI(PRIVACY_POLICY_URL))).row();
+        root.add(lobbyButton("Change Password", this::goToChangePassword)).row();
         root.add(lobbyButton("Log Out", this::logOut)).row();
         root.add(lobbyButton("Delete Account", this::showDeleteAccountDialog)).padBottom(40).row();
         root.add(lobbyButton("Back", "default", this::onBack)).row(); // <- geändert: grüner Style
@@ -64,6 +65,9 @@ public class CopySettingsScreen extends BaseScreen {
     }
 
     /** Sicherheitsabfrage **/
+    private void goToChangePassword() {
+        game.setScreen(new ChangePasswordScreen());
+    }
     private void showDeleteAccountDialog() {
         Dialog dialog = new Dialog("Delete Account", skin, "dialog") {
             @Override
