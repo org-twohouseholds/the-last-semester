@@ -41,8 +41,11 @@ public class Server {
     // extraConfig lets tests change the setup
     static Javalin createServer(DataSource ds, Consumer<JavalinConfig> extraConfig) {
         Javalin server = Javalin.create(cfg -> {
-            // serves src/main/resources/static with index.html at /
-            cfg.staticFiles.add("/static", Location.CLASSPATH);
+            cfg.staticFiles.add(sfConfig -> {
+                sfConfig.directory = "/static"; // serve src/main/resources/static (index.html)
+                sfConfig.location = Location.CLASSPATH;
+                sfConfig.hostedPath = "/";
+            });
             extraConfig.accept(cfg);
         });
         server.before("/api/*", Server::checkProtocolVersion);
