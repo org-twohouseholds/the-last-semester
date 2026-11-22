@@ -1,6 +1,7 @@
 package com.extracreditstudios.thelastsemester.server.db;
 
 import com.extracreditstudios.thelastsemester.server.security.Passwords;
+
 import io.javalin.http.ConflictResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.NotFoundResponse;
@@ -11,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+
 import javax.sql.DataSource;
 
 public class AccountStore {
@@ -35,8 +37,8 @@ public class AccountStore {
         }
     }
 
-    public static void changePassword(DataSource ds, String sessionTokenHash,
-                                      String oldPassword, String newPassword) throws SQLException {
+    public static void changePassword(DataSource ds, String sessionTokenHash, String oldPassword,
+                                      String newPassword) throws SQLException {
         String oldHash;
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
@@ -56,9 +58,8 @@ public class AccountStore {
         String newHash = Passwords.hash(newPassword);
 
         try (Connection c = ds.getConnection();
-             PreparedStatement ps = c.prepareStatement(
-                 "UPDATE account SET password_hash = ? "
-                     + "WHERE session_token_hash = ? AND password_hash = ?")) {
+             PreparedStatement ps = c.prepareStatement("UPDATE account SET password_hash = ? " +
+                 "WHERE session_token_hash = ? AND password_hash = ?")) {
             ps.setString(1, newHash);
             ps.setString(2, sessionTokenHash);
             ps.setString(3, oldHash);
@@ -68,8 +69,7 @@ public class AccountStore {
         }
     }
 
-    public static String findPasswordHash(DataSource ds, String session_token_hash)
-        throws SQLException {
+    public static String findPasswordHash(DataSource ds, String session_token_hash) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
                  "SELECT password_hash FROM account WHERE session_token_hash = ?")) {
@@ -96,7 +96,8 @@ public class AccountStore {
 
     public static Account getAccount(DataSource ds, String username) throws SQLException {
         try (Connection c = ds.getConnection();
-             PreparedStatement ps = c.prepareStatement("SELECT * FROM account WHERE username = ?")) {
+             PreparedStatement ps = c.prepareStatement(
+                 "SELECT * FROM account WHERE username = ?")) {
             ps.setString(1, username);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
@@ -107,8 +108,23 @@ public class AccountStore {
         throw new NotFoundResponse("Account with username: " + username + " not found");
     }
 
-    public static void updateSessionToken(DataSource ds, String username, String session_token_hash) throws
-        SQLException {
+    public static Account getAccountBySessionTokenHash(DataSource ds, String sessionTokenHash) throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "SELECT * FROM account WHERE session_token_hash = ?")) {
+            ps.setString(1, sessionTokenHash);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new Account(rs.getString("username"), rs.getString("password_hash"),
+                        rs.getString("session_token_hash"), rs.getInt("selected_character_id"));
+                }
+            }
+        }
+        throw new UnauthorizedResponse("Invalid session");
+    }
+
+    public static void updateSessionToken(DataSource ds, String username,
+                                          String session_token_hash) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
                  "UPDATE account SET session_token_hash = ? WHERE username = ?")) {
