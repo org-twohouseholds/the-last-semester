@@ -19,6 +19,7 @@ import io.javalin.http.UnauthorizedResponse;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.sql.DataSource;
 
 public class Server {
 
@@ -53,20 +54,21 @@ public class Server {
         // Require the Bearer prefix before extracting the token.
         String authorization = ctx.header("Authorization");
         String bearerPrefix = "Bearer ";
-        if (authorization == null || !authorization.regionMatches(true, 0, bearerPrefix, 0, bearerPrefix.length())) {
+        if (authorization == null ||
+            !authorization.regionMatches(true, 0, bearerPrefix, 0, bearerPrefix.length())) {
             ctx.header("WWW-Authenticate", "Bearer");
             throw new UnauthorizedResponse("A valid session token is required");
         }
 
         String session_token = authorization.substring(bearerPrefix.length()).strip();
-        if(!MessageValidator.validateSessionToken(session_token)) {
+        if (!MessageValidator.validateSessionToken(session_token)) {
             ctx.header("WWW-Authenticate", "Bearer");
             throw new UnauthorizedResponse("Invalid session token");
         }
         return session_token;
     }
 
-    private static void setupRegister(Javalin server, HikariDataSource ds) {
+    private static void setupRegister(Javalin server, DataSource ds) {
         server.post("/auth/register", ctx -> {
             Register.Request request = MessageValidator.validateRegisterRequest(ctx);
             String password_hash = Passwords.hash(request.password());
@@ -78,7 +80,7 @@ public class Server {
         });
     }
 
-    private static void setupDelete(Javalin server, HikariDataSource ds) {
+    private static void setupDelete(Javalin server, DataSource ds) {
         server.post("/account/delete", ctx -> {
             String session_token = checkAndGetSessionToken(ctx);
             String session_token_hash = SessionTokens.hash(session_token);
@@ -97,7 +99,7 @@ public class Server {
         });
     }
 
-    private static void setupLogin (Javalin server, HikariDataSource ds){
+    private static void setupLogin(Javalin server, DataSource ds) {
         server.post("/auth/login", ctx -> {
             Login.Request request = MessageValidator.validateLoginRequest(ctx);
             Account account = AccountStore.getAccount(ds, request.username());
@@ -115,34 +117,33 @@ public class Server {
         });
     }
 
-        private static void setupLogout (Javalin server, HikariDataSource ds){
-            server.post("/auth/logout", ctx -> {
-                String session_token = checkAndGetSessionToken(ctx);
-                String session_token_hash = SessionTokens.hash(session_token);
-                AccountStore.setSessionTokenNull(ds, session_token_hash);
-                ctx.status(204);
-            });
-        }
+    private static void setupLogout(Javalin server, DataSource ds) {
+        server.post("/auth/logout", ctx -> {
+            String session_token = checkAndGetSessionToken(ctx);
+            String session_token_hash = SessionTokens.hash(session_token);
+            AccountStore.setSessionTokenNull(ds, session_token_hash);
+            ctx.status(204);
+        });
+    }
 
 
-private static void setupChangePassword(Javalin server, HikariDataSource ds) {
-    server.put("/account/password", ctx -> {
-        String authorization = ctx.header("Authorization");
+    private static void setupChangePassword(Javalin server, DataSource ds) {
+        server.put("/account/password", ctx -> {
+            String authorization = ctx.header("Authorization");
 
-        if (authorization == null
-                || !authorization.startsWith("Bearer ")
-                || authorization.substring(7).isBlank()) {
-            throw new UnauthorizedResponse("Missing or invalid session token");
-        }
+            if (authorization == null || !authorization.startsWith("Bearer ") ||
+                authorization.substring(7).isBlank()) {
+                throw new UnauthorizedResponse("Missing or invalid session token");
+            }
 
-        String sessionTokenHash = SessionTokens.hash(authorization.substring(7));
-        ChangePassword.Request request = MessageValidator.validateChangePasswordRequest(ctx);
+            String sessionTokenHash = SessionTokens.hash(authorization.substring(7));
+            ChangePassword.Request request = MessageValidator.validateChangePasswordRequest(ctx);
 
-        AccountStore.changePassword(ds, sessionTokenHash,
-                request.old_password(), request.new_password());
+            AccountStore.changePassword(ds, sessionTokenHash, request.old_password(),
+                request.new_password());
 
-        ctx.status(204);
-    });
-}
+            ctx.status(204);
+        });
+    }
 
 }
