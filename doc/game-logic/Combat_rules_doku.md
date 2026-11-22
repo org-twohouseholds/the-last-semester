@@ -60,10 +60,8 @@ Nach der Auswertung werden die aktualisierten Werte und Ereignisse an das UI üb
 
 ## 3. Noch abzustimmen
 
-- Reihenfolge bei gleicher Speed.
-- Energy-Regeneration während eines Matches.
-- HP-/Energy-Reset vor dem nächsten Match.
-- Verhalten bei Attack-, Match- und Shop-Timer-Ablauf.
-- Reihenfolge mehrerer Effekte mit gleichem Auslösezeitpunkt.
-- Vorgehen, falls beide Charaktere gleichzeitig besiegt werden.
-- Konkrete CP-Belohnung und Regeln für bereits erworbene Perks im Shop.
+- Reihenfolge bei gleicher Speed. (Random vlt. coinflip)
+- Energy-Regeneration während eines Matches. (1-2 Energy pro runde regenerieren, Energyleiste 5 bis 10 insgesamt groß)
+- HP-/Energy-Reset vor dem nächsten Match. (Full Reset)
+- Verhalten bei Attack-, Match- und Shop-Timer-Ablauf. (Besprechen mit Frontend team wegen Match-timer)
+- Reihenfolge mehrerer Effekte mit gleichem Auslösezeitpunkt. (was zuerst hinzugefügt wird, wird als erstes ausgelöst)    
