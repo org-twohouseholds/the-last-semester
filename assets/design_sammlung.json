@@ -1,0 +1,114 @@
+{
+  "com.badlogic.gdx.graphics.g2d.BitmapFont": {
+    "font_default": {
+      "file": "PressStart2P-Regular.fnt",
+      "scaledSize": 16,
+      "markupEnabled": false,
+      "flip": false
+    },
+    "font_small": {
+      "file": "PressStart2P-Regular.fnt",
+      "scaledSize": 12,
+      "markupEnabled": false,
+      "flip": false
+    },
+    "font_title": {
+      "file": "PressStart2P-Regular.fnt",
+      "scaledSize": 24,
+      "markupEnabled": false,
+      "flip": false
+    }
+  },
+  "com.badlogic.gdx.graphics.Color": {
+    "text_cream": {
+      "r": 0.9098039,
+      "g": 0.8862745,
+      "b": 0.77254903,
+      "a": 1
+    },
+    "text_dark": {
+      "r": 0.14901961,
+      "g": 0.1882353,
+      "b": 0.11764706,
+      "a": 1
+    },
+    "text_disabled": {
+      "r": 0.46666667,
+      "g": 0.4862745,
+      "b": 0.40784314,
+      "a": 1
+    },
+    "text_gold": {
+      "r": 0.83137256,
+      "g": 0.77254903,
+      "b": 0.5411765,
+      "a": 1
+    },
+    "text_sage": {
+      "r": 0.70980394,
+      "g": 0.7254902,
+      "b": 0.6039216,
+      "a": 1
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.Button$ButtonStyle": {
+    "default": {
+      "up": "button_back_2"
+    },
+    "second": {
+      "up": "buttonbeige"
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.ImageButton$ImageButtonStyle": {
+    "default": {
+      "imageUp": "Group 3"
+    },
+    "profilepic": {
+      "imageUp": "Ellipse 1"
+    },
+    "characters": {
+      "imageUp": "Screenshot 2026-11-11 085916"
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.Label$LabelStyle": {
+    "default": {
+      "font": "font_default",
+      "fontColor": "text_cream"
+    },
+    "black_label": {
+      "font": "font_default",
+      "fontColor": "text_dark"
+    },
+    "small": {
+      "font": "font_small",
+      "fontColor": "text_cream"
+    },
+    "title": {
+      "font": "font_title",
+      "fontColor": "text_cream"
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.TextButton$TextButtonStyle": {
+    "default": {
+      "font": "font_default",
+      "fontColor": "text_cream",
+      "up": "button_back_2"
+    },
+    "second": {
+      "font": "font_default",
+      "fontColor": "text_dark",
+      "up": "buttonbeige"
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle": {
+    "default": {
+      "font": "font_default",
+      "fontColor": "text_disabled"
+    }
+  },
+  "com.badlogic.gdx.scenes.scene2d.ui.TextTooltip$TextTooltipStyle": {
+    "default": {
+      "label": "default"
+    }
+  }
+}

@@ -1,26 +1,49 @@
+
 package com.extracreditstudios.thelastsemester.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Scaling;
 import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
+import com.extracreditstudios.thelastsemester.screens.lobby.JoinLobbyScreen;
+import com.extracreditstudios.thelastsemester.screens.settings.SettingsScreen;
 
+/**
+ * Home-Screen nach Entwurf: Hintergrund, Titel, großer Champion mit Pfeilen,
+ * zwei Zettel (Character grün, Join gelb).
+ * Alle bisherigen Ziele bleiben erreichbar: Settings über das Zahnrad.
+ */
 public class HomeScreen extends BaseScreen {
 
-    private static final String BACKGROUND_PATH = "backgrounds/campus.png";
-    private static final String[] CHAMPION_NAMES = {"Champion 1", "Champion 2", "Champion 3"};
-    private static final String[] CHAMPION_IMAGES = {
-        "champions/champion_1.png",
-        "champions/champion_2.png",
-        "champions/champion_3.png"
+    private static final boolean ARROW_POINTS_LEFT = true;
+
+    private static final String[] CHAMPION_NAMES = {
+        "Champion 1", "Champion 2", "Champion 3", "Champion 4"
     };
 
-    private Texture backgroundTexture; // Bilder belegen Grafikspeicher -> in dispose() freigeben!
-    private ChampionSelector championSelector; // lädt eigene Bilder -> ebenfalls in dispose() freigeben
+    // ---- Layout ----
+    private static final float TOP_BAR_PAD = 10f;
+    private static final float TITLE_WIDTH_FRAC = 0.55f;
+    private static final float TITLE_TOP_PAD = 4f;
+    private static final float GEAR_HIT_SIZE = 64f;
+    private static final float BUTTON_GAP = 18f;
+    private static final float BOTTOM_PAD = 40f;
+    private static final float PLATE_FONT_SCALE = 1.5f;
+    private static final float LINK_FONT_SCALE = 0.8f;
+
+    private static final float CHAMPION_SCALE = 1.7f;
+    private static final float CHAMPION_RAISE = 50f;
+    private static final float CHAMPION_ASPECT = 0.38f;
+    private static final float ARROW_SPACE = 100f;
+    private static final float ARROW_TOP_FRAC = 0.30f;
+    private static final float ARROW_SIZE = 44f;
+
+    private final DesignKit kit = new DesignKit();
+
+    private ChampionSelector championSelector;
 
     public HomeScreen(TheLastSemesterGame game) {
         super(game);
@@ -30,57 +53,170 @@ public class HomeScreen extends BaseScreen {
     protected void buildUi() {
         addBackgroundIfAvailable();
 
-        Label title = new Label("The Last Semester", skin);
-        title.setFontScale(2f);
-        title.setColor(1f, 0.96f, 0.86f, 1f); // Creme-Weiß
+        Texture greenTexture = kit.texture(DesignKit.BUTTON_GREEN);
+        Texture yellowTexture = kit.texture(DesignKit.BUTTON_YELLOW);
+        Texture titleTexture = kit.texture(DesignKit.TITLE);
 
-        // Titel "Table"
-        Table banner = new Table();
-        banner.setBackground(skin.newDrawable("white", 0.12f, 0.08f, 0.05f, 0.6f));
-        banner.add(title).pad(10, 24, 10, 24); // Abstand innen
+        // Höhe der Zettel folgt dem Seitenverhältnis des Bildes
+        float plateHeight = BUTTON_WIDTH * DesignKit.aspect(greenTexture);
 
-        root.add(banner).padTop(80).row();
+        float stageW = stage.getWidth() > 0
+            ? stage.getWidth()
+            : Gdx.graphics.getWidth();
 
-        // Champion-Auswahl
-        championSelector = new ChampionSelector(skin, CHAMPION_NAMES, CHAMPION_IMAGES);
-        // TODO : Spiellogik hier um später Champion fürs Spiel übernehmen
-        championSelector.setSelectionListener(
-                (index, name) -> Gdx.app.log("HomeScreen", "Champion gewählt: " + name));
+        float stageH = stage.getHeight() > 0
+            ? stage.getHeight()
+            : Gdx.graphics.getHeight();
 
-        // Das Fach schluckt allen übrigen Platz (expandY) und schiebt so die Buttons nach unten.
-        // bottom() = Champion steht unten im Fach, also direkt über den Buttons.
-        root.add(championSelector).expandY().bottom().padBottom(24).row();
+        Table topBar = addTopBar();
+        float titleH = addTitle(titleTexture, stageW);
 
-        // TODO: Register Button später woanders platzieren
-       root.add(button("Register (Test)", () -> game.goTo(new RegisterScreen(game))))
-        // Testklasse von D.
-       // root.add(button("Register (Test)", () -> game.goTo(new CopyRegisterScreen(game))))
-                .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();
+        // Platz, den alles außer dem Champion belegt
+        float used = TOP_BAR_PAD + topBar.getPrefHeight()
+            + TITLE_TOP_PAD + titleH
+            + 2 * plateHeight + BUTTON_GAP + BOTTOM_PAD;
 
-        root.add(button("Join / Create Game",
-                    //    () -> game.goTo(new PlaceholderScreen(game, "Join / Create Game"))))
-                () -> game.goTo(new JoinLobbyScreen(game, "Lobby-123"))))
-                .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();
+        addChampionSelector(stageW, stageH - used);
 
-        root.add(button("Character",
-                        () -> game.goTo(new CharacterSelectionScreen())))
-                .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(14).row();
+        addPlateButton(
+            "Character",
+            greenTexture,
+            DesignKit.TEXT_LIGHT,
+            plateHeight,
+            BUTTON_GAP,
+            () -> game.goTo(new CharacterSelectionScreen(game))
+        );
 
-        root.add(button("Settings",
-                        () -> game.goTo(new SettingsScreen(game))))
-                .width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(70).row();
+        addPlateButton(
+            "Join",
+            yellowTexture,
+            DesignKit.TEXT_DARK,
+            plateHeight,
+            BOTTOM_PAD,
+            () -> game.goTo(new JoinLobbyScreen(game, "Lobby-123"))
+        );
     }
 
-    /** Lädt Hintergrundbild */
+
+    private Table addTopBar() {
+        Table topBar = new Table();
+
+        topBar.add().expandX();
+        topBar.add(createSettingsButton())
+            .right()
+            .size(GEAR_HIT_SIZE);
+
+        root.add(topBar)
+            .fillX()
+            .padTop(TOP_BAR_PAD)
+            .padLeft(12)
+            .padRight(12)
+            .row();
+
+        return topBar;
+    }
+
+    private float addTitle(Texture titleTexture, float stageW) {
+        Image title = new Image(titleTexture);
+        title.setScaling(Scaling.fit);
+
+        float titleW = stageW * TITLE_WIDTH_FRAC;
+        float titleH = titleW * DesignKit.aspect(titleTexture);
+
+        root.add(title)
+            .width(titleW)
+            .height(titleH)
+            .padTop(TITLE_TOP_PAD)
+            .row();
+
+        return titleH;
+    }
+
+    private void addChampionSelector(float stageW, float visibleH) {
+        championSelector = new ChampionSelector(
+            kit.skin(),
+            CHAMPION_NAMES,
+            DesignKit.CHAMPION_IMAGES,
+            DesignKit.ARROW,
+            ARROW_POINTS_LEFT
+        );
+
+        championSelector.setSelectionListener(
+            (index, name) ->
+                Gdx.app.log("HomeScreen", "Champion gewählt: " + name)
+        );
+
+        float visible = Math.max(150f, visibleH);
+        float championH = visible * CHAMPION_SCALE;
+        float overlap = championH - visible;
+        float championW = Math.min(
+            stageW - ARROW_SPACE,
+            championH * CHAMPION_ASPECT
+        );
+
+        championSelector.setChampionSize(championW, championH);
+
+        championSelector.setArrowTopPadding(
+            Math.max(
+                0f,
+                ARROW_TOP_FRAC * championH - ARROW_SIZE / 2f
+            )
+        );
+
+        root.add(championSelector)
+            .expandY()
+            .bottom()
+            .padTop(-CHAMPION_RAISE)
+            .padBottom(-overlap + CHAMPION_RAISE)
+            .row();
+    }
+
+    private void addPlateButton(
+        String text,
+        Texture texture,
+        com.badlogic.gdx.graphics.Color textColor,
+        float height,
+        float padBottom,
+        Runnable action
+    ) {
+        root.add(
+                kit.imageButton(
+                    text,
+                    texture,
+                    textColor,
+                    PLATE_FONT_SCALE,
+                    action
+                )
+            )
+            .width(BUTTON_WIDTH)
+            .height(height)
+            .padBottom(padBottom)
+            .row();
+    }
+
+
+    private Actor createSettingsButton() {
+        Runnable openSettings =
+            () -> game.goTo(new SettingsScreen(game));
+
+        Texture gear = kit.textureOrNull(DesignKit.GEAR);
+
+        return gear != null
+            ? kit.imageOnly(gear, openSettings)
+            : kit.link("Settings", LINK_FONT_SCALE, openSettings);
+    }
+
     private void addBackgroundIfAvailable() {
-        FileHandle file = Gdx.files.internal(BACKGROUND_PATH);
-        if (!file.exists()) {
+        Texture texture = kit.textureOrNull(DesignKit.HOME_BACKGROUND);
+
+        if (texture == null) {
             return;
         }
-        backgroundTexture = new Texture(file);
-        Image background = new Image(backgroundTexture);
-        background.setScaling(Scaling.fill); // Bild füllt alles, Seitenverhältnis bleibt
+
+        Image background = new Image(texture);
+        background.setScaling(Scaling.fill);
         background.setFillParent(true);
+
         stage.addActor(background);
         background.toBack();
     }
@@ -88,11 +224,11 @@ public class HomeScreen extends BaseScreen {
     @Override
     public void dispose() {
         super.dispose();
-        if (backgroundTexture != null) {
-            backgroundTexture.dispose();
-        }
+
         if (championSelector != null) {
             championSelector.dispose();
         }
+
+        kit.dispose();
     }
 }
