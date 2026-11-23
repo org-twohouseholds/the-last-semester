@@ -5,6 +5,7 @@ import com.extracreditstudios.thelastsemester.shared.messages.Delete;
 import com.extracreditstudios.thelastsemester.shared.messages.Login;
 import com.extracreditstudios.thelastsemester.shared.messages.Register;
 import com.extracreditstudios.thelastsemester.shared.messages.SelectAction;
+import com.extracreditstudios.thelastsemester.shared.messages.game.AbilityDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -87,7 +88,6 @@ public class MessageValidator {
         String tournament = body.path("tournament").textValue();
         String fight = body.path("fight").textValue();
         JsonNode turn = body.path("turn");
-        JsonNode actionIndex = body.path("actionIndex");
 
         if (tournament == null || tournament.isBlank()) {
             throw new BadRequestResponse("Tournament is required");
@@ -98,12 +98,25 @@ public class MessageValidator {
         if (!turn.isIntegralNumber() || !turn.canConvertToInt() || turn.intValue() < 1) {
             throw new BadRequestResponse("Turn must be an integer of at least 1");
         }
-        if (!actionIndex.isIntegralNumber() || !actionIndex.canConvertToInt()
-                || actionIndex.intValue() < 0) {
-            throw new BadRequestResponse("Action index must be an integer of at least 0");
+        JsonNode ability = body.path("ability");
+        if (!ability.isObject()) {
+            throw new BadRequestResponse("Ability must be a JSON object");
         }
 
-        return new SelectAction.Request(tournament, fight, turn.intValue(), actionIndex.intValue());
+        String name = ability.path("name").textValue();
+        JsonNode baseDamage = ability.path("baseDamage");
+        JsonNode energyCost = ability.path("energyCost");
+        JsonNode speed = ability.path("speed");
+        if (name == null || name.isBlank()) {
+            throw new BadRequestResponse("Ability name is required");
+        }
+        if (!baseDamage.isInt() || !energyCost.isInt() || !speed.isInt()) {
+            throw new BadRequestResponse("Ability baseDamage, energyCost and speed must be integers");
+        }
+
+        AbilityDTO abilityDTO = new AbilityDTO(
+            name, baseDamage.intValue(), energyCost.intValue(), speed.intValue());
+        return new SelectAction.Request(tournament, fight, turn.intValue(), abilityDTO);
     }
 
 }

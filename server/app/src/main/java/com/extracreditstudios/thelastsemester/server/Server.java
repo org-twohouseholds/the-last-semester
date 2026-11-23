@@ -172,7 +172,8 @@ public class Server {
 
     private static void selectAction(Javalin server, DataSource ds) {
         server.post("/api/fight/select", ctx -> {
-            String session_token_hash = SessionTokens.hash(checkAndGetSessionToken(ctx));
+            String session_token = checkAndGetSessionToken(ctx);
+            String session_token_hash = SessionTokens.hash(session_token);
             Account account;
             try {
                 account = AccountStore.getAccountBySessionTokenHash(ds, session_token_hash);
