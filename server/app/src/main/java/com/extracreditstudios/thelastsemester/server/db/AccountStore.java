@@ -1,7 +1,6 @@
 package com.extracreditstudios.thelastsemester.server.db;
 
 import com.extracreditstudios.thelastsemester.server.security.Passwords;
-import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.http.ConflictResponse;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.NotFoundResponse;
@@ -12,15 +11,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import javax.sql.DataSource;
 
 public class AccountStore {
 
-    public static void createAccount(HikariDataSource ds, String username, String password_hash,
-            String session_token_hash) throws SQLException {
+    public static void createAccount(DataSource ds, String username, String password_hash,
+                                     String session_token_hash) throws SQLException {
         try (Connection c = ds.getConnection();
-                PreparedStatement ps = c.prepareStatement(
-                        "INSERT INTO account (username, password_hash, session_token_hash) VALUES " +
-                                "(?, ?, ?)")) {
+             PreparedStatement ps = c.prepareStatement(
+                 "INSERT INTO account (username, password_hash, session_token_hash) VALUES " +
+                     "(?, ?, ?)")) {
             ps.setString(1, username);
             ps.setString(2, password_hash);
             ps.setString(3, session_token_hash);
@@ -35,7 +35,7 @@ public class AccountStore {
         }
     }
 
-    public static void changePassword(HikariDataSource ds, String sessionTokenHash,
+    public static void changePassword(DataSource ds, String sessionTokenHash,
                                       String oldPassword, String newPassword) throws SQLException {
         String oldHash;
         try (Connection c = ds.getConnection();
@@ -68,7 +68,7 @@ public class AccountStore {
         }
     }
 
-    public static String findPasswordHash(HikariDataSource ds, String session_token_hash)
+    public static String findPasswordHash(DataSource ds, String session_token_hash)
         throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
@@ -80,7 +80,7 @@ public class AccountStore {
         }
     }
 
-    public static void deleteAccount(HikariDataSource ds, String session_token_hash,
+    public static void deleteAccount(DataSource ds, String session_token_hash,
                                      String password_hash) throws SQLException {
         deleteMatchingAccount(ds, "DELETE FROM account WHERE session_token_hash = ? ",
             session_token_hash, password_hash);
@@ -104,7 +104,7 @@ public class AccountStore {
         }
     }
 
-    public static Account getAccount(HikariDataSource ds, String username) throws SQLException {
+    public static Account getAccount(DataSource ds, String username) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement("SELECT * FROM account WHERE username = ?")) {
             ps.setString(1, username);
@@ -117,7 +117,7 @@ public class AccountStore {
         throw new NotFoundResponse("Account with username: " + username + " not found");
     }
 
-    public static void updateSessionToken(HikariDataSource ds, String username, String session_token_hash) throws
+    public static void updateSessionToken(DataSource ds, String username, String session_token_hash) throws
         SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
@@ -128,7 +128,7 @@ public class AccountStore {
         }
     }
 
-    public static void setSessionTokenNull(HikariDataSource ds, String session_token_hash) throws SQLException {
+    public static void setSessionTokenNull(DataSource ds, String session_token_hash) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
                  "UPDATE account SET session_token_hash = NULL WHERE session_token_hash = ?")) {
