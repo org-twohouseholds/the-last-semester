@@ -1,18 +1,23 @@
-package com.extracreditstudios.thelastsemester.screens;
+package com.extracreditstudios.thelastsemester.screens.old;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Net;
 import com.badlogic.gdx.net.HttpRequestBuilder;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.JsonWriter;
 import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
+import com.extracreditstudios.thelastsemester.screens.BaseScreen;
+import com.extracreditstudios.thelastsemester.screens.HomeScreen;
 
 /** Register-Screen: Eingabe -> Server-Anfrage -> Ergebnis anzeigen. */
-public class RegisterScreen extends BaseScreen {
+public class OldCopyRegisterScreen extends BaseScreen {
 
     // Server-Adresse für die Registrierung (vom Server-Team)
     private static final String REGISTER_URL = "https://the-last-semester.twohouseholds.com/auth/register";
@@ -24,45 +29,69 @@ public class RegisterScreen extends BaseScreen {
     private static final String FIELD_USERNAME = "username";
     private static final String FIELD_PASSWORD = "password";
 
+    // Style-Name aus design_sammlung.json (ggf. anpassen)
+    private static final String BUTTON_STYLE = "second";
+
+    private final UIFactory ui;
+    private final Skin lobbySkin;
+
     private TextField usernameField;
     private TextField passwordField;
     private TextButton registerButton;
     private Label statusLabel;
 
-    public RegisterScreen(TheLastSemesterGame game) {
+    public OldCopyRegisterScreen(TheLastSemesterGame game) {
         super(game);
+        this.lobbySkin = new Skin(Gdx.files.internal("ui/lobby/design_sammlung.json"));
+        this.ui = new UIFactory(lobbySkin);
     }
 
     /** Titel, Eingabefelder, Buttons und Statusanzeige */
     @Override
     protected void buildUi() {
-        Label title = new Label("Register", skin);
-        title.setFontScale(1.6f);
+        Label title = ui.createLabel("Register", "title");
 
-        usernameField = new TextField("", skin);
-        usernameField.setMessageText("Username"); // Hinweistext im leeren Feld
+        usernameField = ui.createTextField("Username"); // Hinweistext im leeren Feld
         usernameField.setMaxLength(20);
 
-        passwordField = new TextField("", skin);
-        passwordField.setMessageText("Password");
+        passwordField = ui.createTextField("Password");
         passwordField.setPasswordMode(true); // Eingabe verdeckt
         passwordField.setPasswordCharacter('*');
         passwordField.setMaxLength(128);
 
-        registerButton = button("Register", this::onRegisterPressed);
+        registerButton = lobbyButton("Register", this::onRegisterPressed);
 
-        statusLabel = new Label("", skin);
+        statusLabel = ui.createLabel("", "small");
         statusLabel.setAlignment(Align.center);
         statusLabel.setWrap(true);
 
         root.add(title).padBottom(30).row();
-        root.add(usernameField).width(BUTTON_WIDTH).height(48).padBottom(12).row();
-        root.add(passwordField).width(BUTTON_WIDTH).height(48).padBottom(24).row();
-        root.add(registerButton).width(BUTTON_WIDTH).height(BUTTON_HEIGHT).padBottom(20).row();
-        root.add(statusLabel).width(BUTTON_WIDTH).padBottom(30).row();
-        root.add(button("Back", this::onBack)).width(BUTTON_WIDTH).height(BUTTON_HEIGHT).row();
+        root.add(usernameField).width(UIFactory.FULL_BUTTON_WIDTH).height(48).padBottom(12).row();
+        root.add(passwordField).width(UIFactory.FULL_BUTTON_WIDTH).height(48).padBottom(24).row();
+        root.add(registerButton).width(UIFactory.FULL_BUTTON_WIDTH).height(UIFactory.FULL_BUTTON_HEIGHT).padBottom(20).row();
+        root.add(statusLabel).width(UIFactory.FULL_BUTTON_WIDTH).padBottom(30).row();
+        root.add(lobbyButton("Back", "default", this::onBack))
+            .width(UIFactory.FULL_BUTTON_WIDTH).height(UIFactory.FULL_BUTTON_HEIGHT).row();
+
 
         stage.setKeyboardFocus(usernameField); // Cursor direkt im Namensfeld
+    }
+
+
+    /** Button im Lobby-Design, löst beim Klick dieselbe Aktion aus wie vorher. */
+    private TextButton lobbyButton(String text, Runnable action) {
+        return lobbyButton(text, BUTTON_STYLE, action);
+    }
+
+    private TextButton lobbyButton(String text, String style, Runnable action) {
+        TextButton btn = ui.createFullWidthButton(text, style);
+        btn.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                action.run();
+            }
+        });
+        return btn;
     }
 
     /** Prüft Eingaben und startet die Anfrage. */
@@ -144,6 +173,13 @@ public class RegisterScreen extends BaseScreen {
     /** Zurück zum Homescreen */
     @Override
     protected void onBack() {
+        // game.goTo(new HomeScreen(game));
         game.goTo(new HomeScreen(game));
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        lobbySkin.dispose(); // eigener Skin -> freigeben
     }
 }
