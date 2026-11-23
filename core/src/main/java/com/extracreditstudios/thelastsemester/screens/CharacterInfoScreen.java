@@ -1,96 +1,199 @@
 package com.extracreditstudios.thelastsemester.screens;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Scaling;
 import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 
-public class CharacterInfoScreen extends ScreenAdapter {
-    private TheLastSemesterGame game;
-    private Stage stage;
-    private Skin skin;
-    private Texture charTexture;
+public class CharacterInfoScreen extends BaseScreen {
 
-    private String charName;
-    private String description;
-    private String imagePath;
+    private static final String BACKGROUND_FILE =
+        "finaldesign_data/setting_background.png";
+
+    private static final String BACK_BUTTON_FILE =
+        "finaldesign_data/button_setting.png";
+
+    private static final float CENTER_X = 0.51f;
+    private static final float CONTENT_WIDTH_FRAC = 0.78f;
+
+    private static final float NAME_Y = 0.43f;
+    private static final float NAME_HEIGHT_FRAC = 0.06f;
+
+    private static final float IMAGE_Y = 0.56f;
+    private static final float IMAGE_HEIGHT_FRAC = 0.19f;
+
+    private static final float DESC_Y = 0.74f;
+    private static final float DESC_HEIGHT_FRAC = 0.15f;
+
+    private static final float BACK_Y = 0.87f;
+    private static final float BACK_WIDTH_FRAC = 0.76f * 0.55f;
+
+    private final DesignKit kit = new DesignKit();
+
+    private final String charName;
+    private final String description;
+    private final String imagePath;
+
+    private Texture bgTexture;
+    private Texture backButtonTexture;
+    private Texture charTexture;
+    private Texture panelTexture;
 
     public CharacterInfoScreen(TheLastSemesterGame game, String name, String description, String imagePath) {
-        this.game = game;
+        super(game);
         this.charName = name;
         this.description = description;
         this.imagePath = imagePath;
     }
 
     @Override
-    public void show() {
-        stage = new Stage(new com.badlogic.gdx.utils.viewport.FitViewport(800, 600));
-        Gdx.input.setInputProcessor(stage);
+    protected void buildUi() {
+        bgTexture = kit.texture(BACKGROUND_FILE);
+        backButtonTexture = kit.texture(BACK_BUTTON_FILE);
+        panelTexture = solidTexture(new Color(1f, 0.99f, 0.93f, 0.92f));
 
-        skin = new Skin();
-        skin.addRegions(new com.badlogic.gdx.graphics.g2d.TextureAtlas(Gdx.files.internal("design_sammlung.atlas")));
-        skin.add("font_default", new com.badlogic.gdx.graphics.g2d.BitmapFont(Gdx.files.internal("PressStart2P-Regular.fnt")));
-        skin.load(Gdx.files.internal("design_sammlung.json"));
+        float backButtonAspect =
+            backButtonTexture.getHeight() / (float) backButtonTexture.getWidth();
 
-        Table table = new Table();
-        table.setFillParent(true);
-        stage.addActor(table);
+        Board board = new Board(bgTexture);
 
-        Label.LabelStyle labelStyle = new Label.LabelStyle(skin.get("default", Label.LabelStyle.class));
+        Label.LabelStyle nameStyle = new Label.LabelStyle(
+            kit.skin().get("default", Label.LabelStyle.class)
+        );
+        nameStyle.font = kit.font();
+        nameStyle.fontColor = Color.WHITE;
 
-        Label nameLabel = new Label(charName, labelStyle);
-        nameLabel.setFontScale(1.5f);
+        Label nameLabel = new Label(charName, nameStyle);
+        nameLabel.setFontScale(1.4f);
         nameLabel.setAlignment(Align.center);
+        board.placeBox(nameLabel, CENTER_X, NAME_Y, CONTENT_WIDTH_FRAC, NAME_HEIGHT_FRAC);
 
-        charTexture = new Texture(Gdx.files.internal(imagePath));
-        Image charImage = new Image(charTexture);
+        if (imagePath != null && !imagePath.isEmpty() && Gdx.files.internal(imagePath).exists()) {
+            charTexture = new Texture(Gdx.files.internal(imagePath));
+            Image charImage = new Image(charTexture);
+            charImage.setScaling(Scaling.fit);
+            board.placeBox(charImage, CENTER_X, IMAGE_Y, CONTENT_WIDTH_FRAC, IMAGE_HEIGHT_FRAC);
+        }
 
-        Label descLabel = new Label(description, labelStyle);
+        Label.LabelStyle descStyle = new Label.LabelStyle(
+            kit.skin().get("default", Label.LabelStyle.class)
+        );
+        descStyle.font = kit.font();
+        descStyle.fontColor = DesignKit.TEXT_DARK;
+
+        Label descLabel = new Label(description, descStyle);
         descLabel.setWrap(true);
         descLabel.setAlignment(Align.center);
-        // FIX 1: Shrink the text so it is readable and doesn't overlap
-        descLabel.setFontScale(0.5f);
+        descLabel.setFontScale(1.0f);
 
-        // Use the team's custom style for the back button
-        TextButton backBtn = new TextButton("Back", skin, "second");
-        backBtn.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                game.setScreen(new CharacterSelectionScreen());
-            }
-        });
+        Table descCard = new Table();
+        descCard.setBackground(new TextureRegionDrawable(new TextureRegion(panelTexture)));
+        descCard.pad(12f);
+        descCard.add(descLabel).grow();
+        board.placeBox(descCard, CENTER_X, DESC_Y, CONTENT_WIDTH_FRAC, DESC_HEIGHT_FRAC);
 
-        table.add(nameLabel).padBottom(10).row();
+        board.placeAspect(
+            backButton(),
+            CENTER_X,
+            BACK_Y,
+            BACK_WIDTH_FRAC,
+            backButtonAspect
+        );
 
-        // FIX 2: Slightly smaller image and paddings to ensure the Back button stays on screen
-        table.add(charImage).width(180).height(280).padBottom(15).row();
-        table.add(descLabel).width(700).padBottom(20).row();
-        table.add(backBtn).width(250).height(50).row();
+        stage.addActor(board);
+        board.toBack();
+    }
+
+    private Table backButton() {
+        return kit.imageButton(
+            "Back",
+            backButtonTexture,
+            Color.BLACK,
+            1.2f,
+            this::onBack
+        );
+    }
+
+    private static Texture solidTexture(Color color) {
+        Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pm.setColor(color);
+        pm.fill();
+        Texture tex = new Texture(pm);
+        pm.dispose();
+        return tex;
     }
 
     @Override
-    public void render(float delta) {
-        Gdx.gl.glClearColor(0.14f, 0.15f, 0.20f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.act();
-        stage.draw();
+    protected void onBack() {
+        game.goTo(new CharacterSelectionScreen(game));
     }
 
     @Override
     public void dispose() {
-        stage.dispose();
-        skin.dispose();
+        super.dispose();
+        kit.dispose();
         if (charTexture != null) charTexture.dispose();
+        if (panelTexture != null) panelTexture.dispose();
+    }
+
+    private static class Board extends WidgetGroup {
+
+        private final Image bg;
+
+        private final Array<Actor> items = new Array<>();
+        private final Array<float[]> pos = new Array<>();
+
+        Board(Texture texture) {
+            bg = new Image(texture);
+            bg.setScaling(Scaling.stretch);
+
+            addActor(bg);
+            setFillParent(true);
+        }
+
+        void placeAspect(Actor actor, float fx, float fyFromTop, float widthFrac, float aspect) {
+            addActor(actor);
+            items.add(actor);
+            pos.add(new float[]{fx, fyFromTop, widthFrac, aspect, 0f});
+        }
+
+        void placeBox(Actor actor, float fx, float fyFromTop, float widthFrac, float heightFrac) {
+            addActor(actor);
+            items.add(actor);
+            pos.add(new float[]{fx, fyFromTop, widthFrac, heightFrac, 1f});
+        }
+
+        @Override
+        public void layout() {
+            float w = getWidth();
+            float h = getHeight();
+
+            bg.setBounds(0, 0, w, h);
+
+            for (int i = 0; i < items.size; i++) {
+                Actor actor = items.get(i);
+                float[] p = pos.get(i);
+
+                float actorWidth = p[2] * w;
+                float actorHeight = (p[4] == 1f) ? (p[3] * h) : (actorWidth * p[3]);
+                actor.setSize(actorWidth, actorHeight);
+
+                actor.setPosition(
+                    p[0] * w - actor.getWidth() / 2f,
+                    (1f - p[1]) * h - actor.getHeight() / 2f
+                );
+            }
+        }
     }
 }

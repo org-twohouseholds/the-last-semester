@@ -68,7 +68,7 @@ public class OldSettingsScreen extends BaseScreen {
 
     /** Sicherheitsabfrage **/
     private void goToChangePassword() {
-        game.setScreen(new ChangePasswordScreen());
+        game.setScreen(new com.extracreditstudios.thelastsemester.screens.ChangePasswordScreen());
     }
     private void showDeleteAccountDialog() {
         Dialog dialog = new Dialog("Delete Account", skin, "dialog") {
