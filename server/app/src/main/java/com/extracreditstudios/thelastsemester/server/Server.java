@@ -173,9 +173,10 @@ public class Server {
     private static void selectAction(Javalin server, DataSource ds) {
         server.post("/api/fight/select", ctx -> {
             String session_token_hash = SessionTokens.hash(checkAndGetSessionToken(ctx));
-            String username = AccountStore.findUsernameBySessionToken(ds, session_token_hash);
-
-            if (username == null) {
+            Account account;
+            try {
+                account = AccountStore.getAccountBySessionTokenHash(ds, session_token_hash);
+            } catch (UnauthorizedResponse e) {
                 ctx.header("WWW-Authenticate", "Bearer");
                 throw new UnauthorizedResponse("A valid session token is required");
             }
