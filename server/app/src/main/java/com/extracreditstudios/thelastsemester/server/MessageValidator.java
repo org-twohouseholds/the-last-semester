@@ -52,7 +52,7 @@ public class MessageValidator {
             boolean hasUsername = !username.isMissingNode();
             if (body.isObject() && body.size() == (hasUsername ? 2 : 1)
                 && password.isTextual() && !password.textValue().isEmpty()
-                && (!hasUsername || validateUsername(username.textValue()))) {
+                && (!hasUsername || username.isNull() || validateUsername(username.textValue()))) {
                 return new Delete.Request(username.textValue(), password.textValue());
             }
         } catch (JsonProcessingException ignored) {}

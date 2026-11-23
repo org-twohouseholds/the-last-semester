@@ -82,22 +82,26 @@ public class AccountStore {
 
     public static void deleteAccount(DataSource ds, String session_token_hash,
                                      String password_hash) throws SQLException {
-        deleteMatchingAccount(ds, "DELETE FROM account WHERE session_token_hash = ? ",
-            session_token_hash, password_hash);
-    }
-
-    public static void deleteAccountByUsername(HikariDataSource ds, String username,
-                                                String password_hash) throws SQLException {
-        deleteMatchingAccount(ds, "DELETE FROM account WHERE username = ? ", username, password_hash);
-    }
-
-    private static void deleteMatchingAccount(HikariDataSource ds, String sql,
-                                              String accountIdentifier, String password_hash) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement(
-                 sql + "AND CAST(password_hash AS BINARY) = CAST(? AS BINARY)")) {
-            ps.setString(1, accountIdentifier);
+                 "DELETE FROM account WHERE session_token_hash = ? " +
+                     "AND CAST(password_hash AS BINARY) = CAST(? AS BINARY)")) {
+            ps.setString(1, session_token_hash);
             ps.setString(2, password_hash);
+            if (ps.executeUpdate() == 0) {
+                throw new ConflictResponse("Account changed before deletion");
+            }
+        }
+    }
+
+    public static void deleteAccountByUsername(DataSource ds, String username, String passwordHash)
+        throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "DELETE FROM account WHERE username = ? " +
+                     "AND CAST(password_hash AS BINARY) = CAST(? AS BINARY)")) {
+            ps.setString(1, username);
+            ps.setString(2, passwordHash);
             if (ps.executeUpdate() == 0) {
                 throw new ConflictResponse("Account changed before deletion");
             }

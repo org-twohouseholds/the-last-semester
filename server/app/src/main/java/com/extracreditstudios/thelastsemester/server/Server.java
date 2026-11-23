@@ -12,6 +12,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpResponseException;
@@ -22,6 +23,7 @@ import io.javalin.http.staticfiles.Location;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.function.Consumer;
 
 import javax.sql.DataSource;
@@ -91,6 +93,16 @@ public class Server {
         return session_token;
     }
 
+    private static String requirePasswordHashForSession(Context ctx, DataSource ds, String sessionTokenHash)
+        throws SQLException {
+        String passwordHash = AccountStore.findPasswordHash(ds, sessionTokenHash);
+        if (passwordHash == null) {
+            ctx.header("WWW-Authenticate", "Bearer");
+            throw new UnauthorizedResponse("A valid session token is required");
+        }
+        return passwordHash;
+    }
+
     private static void setupRegister(Javalin server, DataSource ds) {
         server.post("/api/auth/register", ctx -> {
             Register.Request request = MessageValidator.validateRegisterRequest(ctx);
@@ -105,13 +117,14 @@ public class Server {
 
     private static void setupDelete(Javalin server, DataSource ds) {
         server.post("/api/account/delete", ctx -> {
-            String authorization = ctx.header("Authorization");
-            if ((authorization == null || authorization.isBlank()) && ctx.body().isBlank()) {
-                ctx.header("WWW-Authenticate", "Bearer");
-                throw new UnauthorizedResponse("A valid session token is required");
+            Delete.Request request;
+            try {
+                request = MessageValidator.validateDeleteRequest(ctx);
+            } catch (BadRequestResponse e) {
+                String sessionTokenHash = SessionTokens.hash(checkAndGetSessionToken(ctx));
+                requirePasswordHashForSession(ctx, ds, sessionTokenHash);
+                throw e;
             }
-
-            Delete.Request request = MessageValidator.validateDeleteRequest(ctx);
 
             if (request.username() != null) {
                 Account account;
@@ -132,11 +145,7 @@ public class Server {
 
             String session_token = checkAndGetSessionToken(ctx);
             String session_token_hash = SessionTokens.hash(session_token);
-            String password_hash = AccountStore.findPasswordHash(ds, session_token_hash);
-            if (password_hash == null) {
-                ctx.header("WWW-Authenticate", "Bearer");
-                throw new UnauthorizedResponse("A valid session token is required");
-            }
+            String password_hash = requirePasswordHashForSession(ctx, ds, session_token_hash);
 
             if (!Passwords.verify(password_hash, request.password())) {
                 throw new ForbiddenResponse("Incorrect password");
