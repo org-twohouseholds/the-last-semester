@@ -1,6 +1,8 @@
 
 package com.extracreditstudios.thelastsemester.screens.lobby;
 
+import com.extracreditstudios.thelastsemester.battleScreen.BattleScreen;
+
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -130,7 +132,7 @@ public class TournamentScreen extends BaseScreen {
             btnNext.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    nextRound();
+                    game.goTo(new BattleScreen(game, players));
                 }
             });
 
