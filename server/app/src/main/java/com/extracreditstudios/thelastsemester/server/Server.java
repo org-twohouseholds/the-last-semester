@@ -56,7 +56,6 @@ public class Server {
         setupLogout(server, ds);
         setupChangePassword(server, ds);
         selectAction(server, ds);
-        server.start(7070);
         return server;
     }
 

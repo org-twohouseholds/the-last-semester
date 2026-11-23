@@ -41,13 +41,13 @@ public class MessageValidator {
             .get();
     }
 
-    private static final ObjectReader DELETE_REQUEST_READER = new ObjectMapper()
+    private static final ObjectReader REQUEST_BODY_READER = new ObjectMapper()
         .readerFor(JsonNode.class)
         .with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
     public static Delete.Request validateDeleteRequest(Context ctx) {
         try {
-            JsonNode body = DELETE_REQUEST_READER.readValue(ctx.body());
+            JsonNode body = REQUEST_BODY_READER.readValue(ctx.body());
             JsonNode password = body.path("password");
             if (body.isObject() && body.size() == 1 && password.isTextual()
                 && !password.textValue().isEmpty()) {
@@ -74,12 +74,36 @@ public class MessageValidator {
     }
 
     public static SelectAction.Request validateSelectAction(Context ctx) {
-        return ctx.bodyValidator(SelectAction.Request.class)
-            .check(r -> r.tournament() != null && !r.tournament().isBlank(), "Tournament is required")
-            .check(r -> r.fight() != null, "Fight is required")
-            .check(r -> r.turn() != null && r.turn() >= 1, "Turn must be at least 1")
-            .check(r -> r.actionIndex() != null && r.actionIndex() >= 0, "Action index must be at least 0")
-            .get();
+        JsonNode body;
+        try {
+            body = REQUEST_BODY_READER.readValue(ctx.body());
+        } catch (JsonProcessingException e) {
+            throw new BadRequestResponse("Expected a JSON object for Select Action");
+        }
+        if (!body.isObject()) {
+            throw new BadRequestResponse("Expected a JSON object for Select Action");
+        }
+
+        String tournament = body.path("tournament").textValue();
+        String fight = body.path("fight").textValue();
+        JsonNode turn = body.path("turn");
+        JsonNode actionIndex = body.path("actionIndex");
+
+        if (tournament == null || tournament.isBlank()) {
+            throw new BadRequestResponse("Tournament is required");
+        }
+        if (fight == null || fight.isBlank()) {
+            throw new BadRequestResponse("Fight is required");
+        }
+        if (!turn.isIntegralNumber() || !turn.canConvertToInt() || turn.intValue() < 1) {
+            throw new BadRequestResponse("Turn must be an integer of at least 1");
+        }
+        if (!actionIndex.isIntegralNumber() || !actionIndex.canConvertToInt()
+                || actionIndex.intValue() < 0) {
+            throw new BadRequestResponse("Action index must be an integer of at least 0");
+        }
+
+        return new SelectAction.Request(tournament, fight, turn.intValue(), actionIndex.intValue());
     }
 
 }
