@@ -20,7 +20,7 @@
 ## State handling
 
 - RAM
-  - lobby
+  - lobby/tournament
     - ID
     - state version (for polling)
     - players
