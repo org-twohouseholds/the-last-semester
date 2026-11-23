@@ -121,8 +121,9 @@ public class Server {
             try {
                 request = MessageValidator.validateDeleteRequest(ctx);
             } catch (BadRequestResponse e) {
-                String sessionTokenHash = SessionTokens.hash(checkAndGetSessionToken(ctx));
-                requirePasswordHashForSession(ctx, ds, sessionTokenHash);
+                String session_token = checkAndGetSessionToken(ctx);
+                String session_token_hash = SessionTokens.hash(session_token);
+                requirePasswordHashForSession(ctx, ds, session_token_hash);
                 throw e;
             }
 
