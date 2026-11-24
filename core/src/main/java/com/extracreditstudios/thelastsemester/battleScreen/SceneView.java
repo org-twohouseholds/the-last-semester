@@ -88,6 +88,14 @@ public class SceneView implements Disposable {
         enemy.setBounds(w - eW, ENEMY_Y * scale, eW, eH);
     }
 
+    public Image getPlayer() {
+        return player;
+    }
+
+    public Image getEnemy() {
+        return enemy;
+    }
+
     @Override
     public void dispose() {
         backgroundTex.dispose();

@@ -50,6 +50,16 @@ public class BattleScreen extends ScreenAdapter {
     private StatusBarsView statusBarsView;
     private CountdownView countdownView;
     private AttackButtonsView attackButtonsView;
+    // TODO: take the character names from the character selection
+    private static final String PLAYER_CHARACTER = "The Bitter One";
+    private static final String ENEMY_CHARACTER = "The Hacker";
+
+    private PerkAnimation perkAnimation;
+    private PassiveAnimation passiveAnimation;
+    private int playedAttacks = 0;
+    private boolean passivesPlayed = false;
+    // short pause after the last hit, so the final animation is visible
+    private float finishDelay = 1.5f;
     private Battle battle;
     private float roundTimeLeft = ROUND_DURATION;
     private boolean roundOver = false;
@@ -88,6 +98,8 @@ public class BattleScreen extends ScreenAdapter {
                 }
             }
         );
+        perkAnimation = new PerkAnimation(stage, attackFont);
+        passiveAnimation = new PassiveAnimation(stage, attackFont);
         Gdx.input.setInputProcessor(stage);
     }
 
@@ -154,10 +166,13 @@ public class BattleScreen extends ScreenAdapter {
             battle.update(delta);
         }
 
-        // Check if the battle has ended
+        // Check if the battle has ended (after a short pause for the last animation)
         if (!battleFinished && battle.isOver()) {
-            battleFinished = true;
-            finishBattle();
+            finishDelay -= delta;
+            if (finishDelay <= 0f) {
+                battleFinished = true;
+                finishBattle();
+            }
             return;
         }
 
@@ -204,6 +219,23 @@ public class BattleScreen extends ScreenAdapter {
         statusBarsView.update(battle);
         countdownView.update(battle.timeLeft);
         attackButtonsView.update(battle, roundOver);
+
+        // passives are shown once at the start of the battle
+        // TODO: play them when the passive actually triggers (once the effect system is connected)
+        if (!passivesPlayed) {
+            passivesPlayed = true;
+            passiveAnimation.play(sceneView.getPlayer(), PLAYER_CHARACTER);
+            passiveAnimation.play(sceneView.getEnemy(), ENEMY_CHARACTER);
+        }
+
+        // a new attack was executed -> play its animation once
+        if (battle.attackCount != playedAttacks) {
+            playedAttacks = battle.attackCount;
+            perkAnimation.play(
+                sceneView.getPlayer(), sceneView.getEnemy(),
+                battle.lastAttack, battle.lastDamage
+            );
+        }
     }
 
     // updates viewport and scene layout when screen is resized
@@ -235,6 +267,14 @@ public class BattleScreen extends ScreenAdapter {
 
         if (drawables != null) {
             drawables.dispose();
+        }
+
+        if (perkAnimation != null) {
+            perkAnimation.dispose();
+        }
+
+        if (passiveAnimation != null) {
+            passiveAnimation.dispose();
         }
 
         if (attackFont != null) {
