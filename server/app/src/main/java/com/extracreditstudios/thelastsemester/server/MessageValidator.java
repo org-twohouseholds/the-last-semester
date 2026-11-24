@@ -75,8 +75,8 @@ public class MessageValidator {
 
     public static SelectAction.Request validateSelectAction(Context ctx) {
         return ctx.bodyValidator(SelectAction.Request.class)
-            .check(r -> r.tournament() != null && !r.tournament().isBlank(), "Tournament is required")
-            .check(r -> r.fight() != null && !r.fight().isBlank(), "Fight is required")
+            .check(r -> r.lobbyId() != null && !r.lobbyId().isBlank(), "Lobby ID is required")
+            .check(r -> r.matchId() != null && !r.matchId().isBlank(), "Match ID is required")
             .check(r -> r.turn() != null && r.turn() >= 1, "Turn must be at least 1")
             .check(r -> r.ability() != null && r.ability().name() != null && !r.ability().name().isBlank(),
                 "Ability with a name is required")
