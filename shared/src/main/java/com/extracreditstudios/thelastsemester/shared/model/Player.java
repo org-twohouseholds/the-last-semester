@@ -35,6 +35,10 @@ public class Player {
         this.lobby = lobby;
     }
 
+    public void setCharacter(Character character) {
+        this.character = character;
+    }
+
     public Character getCharacter() {
         return character;
     }

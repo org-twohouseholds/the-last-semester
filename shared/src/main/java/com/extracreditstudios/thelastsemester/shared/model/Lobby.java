@@ -9,7 +9,8 @@ public class Lobby {
 
     private int maxPlayers = 8;
 
-    private List<Player> playerList;
+    private final List<Player> playerList;
+
     private Tournament tournament;
 
     private GamePhase phase;
@@ -17,6 +18,7 @@ public class Lobby {
     private long stateVersion = 0;
 
     private Long deadlineMillis;
+
 
     public Lobby(String lobbyID, long startAfterMilis) {
         this.lobbyID = lobbyID;
@@ -60,17 +62,29 @@ public class Lobby {
     public void setDeadlineMillis(Long deadlineMillis) {
         this.deadlineMillis = deadlineMillis;
     }
-/* TODO
+
+    public Tournament getTournament() {
+        return tournament;
+    }
+
+    /* TODO
     public void addPlayer(Player player){
     if(maxPlayers > playerList.size()){
     playerList.add(player);
     }
-    }
+    }*/
 
-    public void createTournament(){
-        this.tournament = new Tournament()
+    public void startTournament(){
+        List<TournamentParticipation> participants = this.playerList.stream()
+            .map(player -> {
+                Character character = player.getCharacter();
+                CharacterInstance characterInstance = new CharacterInstance(character);
+                TournamentParticipation participant = new TournamentParticipation(characterInstance);
+                participant.setPlayer(player);
+                return participant;
+            }).toList();
+        this.tournament = new Tournament(participants, null);
+        this.tournament.start();
     }
-
-    */
 
 }
