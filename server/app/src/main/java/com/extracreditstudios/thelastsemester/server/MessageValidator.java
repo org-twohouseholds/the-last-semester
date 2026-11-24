@@ -41,13 +41,13 @@ public class MessageValidator {
             .get();
     }
 
-    private static final ObjectReader DELETE_REQUEST_READER = new ObjectMapper()
+    private static final ObjectReader REQUEST_BODY_READER = new ObjectMapper()
         .readerFor(JsonNode.class)
         .with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
     public static Delete.Request validateDeleteRequest(Context ctx) {
         try {
-            JsonNode body = DELETE_REQUEST_READER.readValue(ctx.body());
+            JsonNode body = REQUEST_BODY_READER.readValue(ctx.body());
             JsonNode password = body.path("password");
             if (body.isObject() && body.size() == 1 && password.isTextual()
                 && !password.textValue().isEmpty()) {
@@ -59,7 +59,7 @@ public class MessageValidator {
 
     public static SelectCharacter.Request validateSelectCharacterRequest(Context ctx) {
         try {
-            JsonNode body = DELETE_REQUEST_READER.readValue(ctx.body());
+            JsonNode body = REQUEST_BODY_READER.readValue(ctx.body());
             JsonNode characterId = body.path("character_id");
             // isInt() rejects strings, decimals and numbers outside the int range
             if (body.isObject() && body.size() == 1 && characterId.isInt()
