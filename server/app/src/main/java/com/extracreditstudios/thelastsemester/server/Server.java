@@ -12,7 +12,6 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import io.javalin.Javalin;
 import io.javalin.config.JavalinConfig;
-import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpResponseException;
@@ -54,6 +53,7 @@ public class Server {
         server.before("/api/*", Server::checkProtocolVersion);
         setupRegister(server, ds);
         setupDelete(server, ds);
+        setupDeleteWithCredentials(server, ds);
         setupLogin(server, ds);
         setupLogout(server, ds);
         setupChangePassword(server, ds);
@@ -93,7 +93,7 @@ public class Server {
         return session_token;
     }
 
-    private static String requirePasswordHashForSession(Context ctx, DataSource ds, String sessionTokenHash)
+    private static String getPasswordHashBySessionTokenHash(Context ctx, DataSource ds, String sessionTokenHash)
         throws SQLException {
         String passwordHash = AccountStore.findPasswordHash(ds, sessionTokenHash);
         if (passwordHash == null) {
@@ -117,42 +117,36 @@ public class Server {
 
     private static void setupDelete(Javalin server, DataSource ds) {
         server.post("/api/account/delete", ctx -> {
-            Delete.Request request;
-            try {
-                request = MessageValidator.validateDeleteRequest(ctx);
-            } catch (BadRequestResponse e) {
-                String session_token = checkAndGetSessionToken(ctx);
-                String session_token_hash = SessionTokens.hash(session_token);
-                requirePasswordHashForSession(ctx, ds, session_token_hash);
-                throw e;
-            }
-
-            if (request.username() != null) {
-                Account account;
-                try {
-                    account = AccountStore.getAccount(ds, request.username());
-                } catch (NotFoundResponse e) {
-                    throw new ForbiddenResponse("Invalid credentials");
-                }
-
-                if (!Passwords.verify(account.password_hash(), request.password())) {
-                    throw new ForbiddenResponse("Invalid credentials");
-                }
-
-                AccountStore.deleteAccountByUsername(ds, account.username(), account.password_hash());
-                ctx.status(204);
-                return;
-            }
+            Delete.Request request = MessageValidator.validateDeleteRequest(ctx);
 
             String session_token = checkAndGetSessionToken(ctx);
             String session_token_hash = SessionTokens.hash(session_token);
-            String password_hash = requirePasswordHashForSession(ctx, ds, session_token_hash);
+            String password_hash = getPasswordHashBySessionTokenHash(ctx, ds, session_token_hash);
 
             if (!Passwords.verify(password_hash, request.password())) {
                 throw new ForbiddenResponse("Incorrect password");
             }
 
             AccountStore.deleteAccount(ds, session_token_hash, password_hash);
+            ctx.status(204);
+        });
+    }
+
+    private static void setupDeleteWithCredentials(Javalin server, DataSource ds) {
+        server.post("/api/account/delete-with-credentials", ctx -> {
+            Delete.WithCredentialsRequest request = MessageValidator.validateDeleteWithCredentialsRequest(ctx);
+            Account account;
+            try {
+                account = AccountStore.getAccount(ds, request.username());
+            } catch (NotFoundResponse e) {
+                throw new ForbiddenResponse("Invalid credentials");
+            }
+
+            if (!Passwords.verify(account.password_hash(), request.password())) {
+                throw new ForbiddenResponse("Invalid credentials");
+            }
+
+            AccountStore.deleteAccountByUsername(ds, account.username(), account.password_hash());
             ctx.status(204);
         });
     }

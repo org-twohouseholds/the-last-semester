@@ -44,19 +44,32 @@ public class MessageValidator {
         .readerFor(JsonNode.class)
         .with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
-    public static Delete.Request validateDeleteRequest(Context ctx) {
+    private static JsonNode readDeleteBody(Context ctx) {
         try {
             JsonNode body = DELETE_REQUEST_READER.readValue(ctx.body());
             JsonNode password = body.path("password");
-            JsonNode username = body.path("username");
-            boolean hasUsername = !username.isMissingNode();
-            if (body.isObject() && body.size() == (hasUsername ? 2 : 1)
-                && password.isTextual() && !password.textValue().isEmpty()
-                && (!hasUsername || username.isNull() || validateUsername(username.textValue()))) {
-                return new Delete.Request(username.textValue(), password.textValue());
+            if (body.isObject() && password.isTextual() && !password.textValue().isEmpty()) {
+                return body;
             }
         } catch (JsonProcessingException ignored) {}
-        throw new BadRequestResponse("Expected a JSON body with a password and an optional valid username");
+        throw new BadRequestResponse("Expected a JSON body with a password");
+    }
+
+    public static Delete.Request validateDeleteRequest(Context ctx) {
+        JsonNode body = readDeleteBody(ctx);
+        if (body.size() != 1) {
+            throw new BadRequestResponse("Expected a JSON body with only a password");
+        }
+        return new Delete.Request(body.get("password").textValue());
+    }
+
+    public static Delete.WithCredentialsRequest validateDeleteWithCredentialsRequest(Context ctx) {
+        JsonNode body = readDeleteBody(ctx);
+        String username = body.path("username").textValue();
+        if (body.size() != 2 || !validateUsername(username)) {
+            throw new BadRequestResponse("Expected a JSON body with a valid username and a password");
+        }
+        return new Delete.WithCredentialsRequest(username, body.get("password").textValue());
     }
 
     public static Login.Request validateLoginRequest(Context ctx) {
