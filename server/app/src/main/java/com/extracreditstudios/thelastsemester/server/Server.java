@@ -9,9 +9,8 @@ import com.extracreditstudios.thelastsemester.shared.messages.Protocol;
 import com.extracreditstudios.thelastsemester.shared.messages.Register;
 import com.extracreditstudios.thelastsemester.shared.messages.game.LobbyDTO;
 import com.extracreditstudios.thelastsemester.shared.messages.game.LobbyPlayerDTO;
-import com.extracreditstudios.thelastsemester.shared.model.GamePhase;
-import com.extracreditstudios.thelastsemester.shared.model.Lobby;
-import com.extracreditstudios.thelastsemester.shared.model.Player;
+import com.extracreditstudios.thelastsemester.shared.model.*;
+import com.extracreditstudios.thelastsemester.shared.model.Character;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -27,6 +26,7 @@ import io.javalin.http.staticfiles.Location;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,7 +45,6 @@ public class Server {
         Executors.newSingleThreadScheduledExecutor();
     private static final Map<Lobby, ScheduledFuture<?>> lobbyTimers = new ConcurrentHashMap<>();
     private static final long START_LOBBY_AFTER_MILLIS = 60_000;
-
     private static final AtomicInteger nextLobbyId = new AtomicInteger(0);
     private static final Set<Lobby> lobbies = ConcurrentHashMap.newKeySet();
     private static final Map<String, Player> username2Player = new ConcurrentHashMap<>();
@@ -80,7 +79,7 @@ public class Server {
         setupJoinLobby(server, ds);
         setupQuitLobby(server, ds);
         setupLobbyPolling(server, ds);
-        setupMatchPolling(server, ds);
+        //setupMatchPolling(server, ds);
         return server;
     }
 
@@ -212,6 +211,8 @@ public class Server {
                     .orElseGet(Server::createLobby);
                 lobby.getPlayerList().add(player);
                 player.setLobby(lobby);
+                player.setCharacter(new Character("test", 1,1,
+                    new Ability("test_ability",1, 1, 1, List.of("effect"))));
                 lobby.incrementStateVersion();
                 if (lobby.getPlayerList().size() == lobby.getMaxPlayers()) {
                     startLobby(lobby);
@@ -240,9 +241,11 @@ public class Server {
         int botNumber = 1;
         while (lobby.getPlayerList().size() < lobby.getMaxPlayers()) {
             Player bot = Player.bot(botNumber++, lobby);
+            bot.setCharacter(new Character("test", 1,1,
+                new Ability("test_ability",1, 1, 1, List.of("effect"))));
             lobby.getPlayerList().add(bot);
         }
-        // TODO: create tournament + first round of matches here
+        lobby.startTournament();
         lobby.setPhase(GamePhase.FIGHT);
         lobby.setDeadlineMillis(null);
         lobby.incrementStateVersion();
@@ -255,15 +258,7 @@ public class Server {
             Account account = AccountStore.getAccountBySessionTokenHash(ds, sessionTokenHash);
             Player player = username2Player.get(account.username());
             synchronized (lobbies) {
-                if (player == null || player.getLobby() == null) {
-                    throw new ConflictResponse("Not in a lobby");
-                }
-                Lobby lobby = lobbies.stream()
-                    .filter(l -> l.getPlayerList().contains(player))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                        "Player " + player.getUsername() + " is marked inLobby but is in no " +
-                            "lobby"));
+                Lobby lobby = checkAndGetLobby(player);
                 if (lobby.getPhase() != GamePhase.LOBBY) {
                     throw new ConflictResponse("Game already started");
                 }
@@ -280,13 +275,25 @@ public class Server {
         });
     }
 
+    private static Lobby checkAndGetLobby(Player player) {
+        if (player == null || player.getLobby() == null) {
+            throw new ConflictResponse("Not in a lobby");
+        }
+        return lobbies.stream()
+            .filter(l -> l.getPlayerList().contains(player))
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException(
+                "Player " + player.getUsername() + " is marked inLobby but is in no " +
+                    "lobby"));
+    }
+
     private static void setupLobbyPolling(Javalin server, DataSource ds) {
         server.get("/api/lobby", ctx -> {
             String sessionToken = checkAndGetSessionToken(ctx);
             String sessionTokenHash = SessionTokens.hash(sessionToken);
             Account account = AccountStore.getAccountBySessionTokenHash(ds, sessionTokenHash);
             Player player = username2Player.get(account.username());
-            Lobby lobby = player.getLobby();
+            Lobby lobby = checkAndGetLobby(player);
             ctx.json(new LobbyDTO(lobby.getLobbyID(), lobby.getStateVersion(), lobby.getPhase(),
                 lobby.getDeadlineMillis(), lobby.getMaxPlayers(), lobby.getPlayerList()
                 .stream()
@@ -295,16 +302,18 @@ public class Server {
             ctx.status(200);
         });
     }
-
-    private static void setupMatchPolling(Javalin server, DataSource ds) {
-        server.get("/api/fight", ctx -> {
-            String sessionToken = checkAndGetSessionToken(ctx);
-            String sessionTokenHash = SessionTokens.hash(sessionToken);
-            Account account = AccountStore.getAccountBySessionTokenHash(ds, sessionTokenHash);
-            Player player = username2Player.get(account.username());
-            Lobby lobby = player.getLobby();
-            // TODO
-        });
-    }
+//TODO
+//    private static void setupMatchPolling(Javalin server, DataSource ds) {
+//        server.get("/api/fight", ctx -> {
+//            String sessionToken = checkAndGetSessionToken(ctx);
+//            String sessionTokenHash = SessionTokens.hash(sessionToken);
+//            Account account = AccountStore.getAccountBySessionTokenHash(ds, sessionTokenHash);
+//            Player player = username2Player.get(account.username());
+//            Lobby lobby = checkAndGetLobby(player);
+//            Match match = lobby.getTournament().getBracket().stream()
+//                .filter(match -> match.).findFirst().orElse(null);
+//            MatchDTO matchDTO = new MatchDTO()
+//        });
+//    }
 
 }
