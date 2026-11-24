@@ -1,4 +1,4 @@
-package com.extracreditstudios.thelastsemester.shared.messages.game;
+package com.extracreditstudios.thelastsemester.shared.model;
 
 /** Current phase of a lobby/tournament. */
 public enum GamePhase {
