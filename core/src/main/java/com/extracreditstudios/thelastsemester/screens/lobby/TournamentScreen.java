@@ -18,6 +18,7 @@ import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 import com.extracreditstudios.thelastsemester.screens.BaseScreen;
 import com.extracreditstudios.thelastsemester.screens.DesignKit;
 import com.extracreditstudios.thelastsemester.screens.HomeScreen;
+import com.extracreditstudios.thelastsemester.screens.ShopScreen;
 
 public class TournamentScreen extends BaseScreen {
 
@@ -132,7 +133,7 @@ public class TournamentScreen extends BaseScreen {
             btnNext.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    game.goTo(new BattleScreen(game, players));
+                    game.goTo(new ShopScreen(game, players));
                 }
             });
 

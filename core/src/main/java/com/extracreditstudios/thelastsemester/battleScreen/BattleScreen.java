@@ -7,14 +7,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.extracreditstudios.thelastsemester.screens.lobby.FinalWinner;
 import com.extracreditstudios.thelastsemester.screens.lobby.TournamentScreen;
 
@@ -63,7 +59,6 @@ public class BattleScreen extends ScreenAdapter {
 
 
     public BattleScreen(TheLastSemesterGame game, String[] players) {
-
         this.game = game;
         this.players = players;
     }
@@ -125,18 +120,12 @@ public class BattleScreen extends ScreenAdapter {
 
     // values for tests - delete later
     private void createTestBattle() {
+        // Alle freigeschalteten Attacken des Spielers laden
+        Attack[] playerAttacks = game.getUnlockedAttacks().toArray(new Attack[0]);
 
-        Fighter bitter = new Fighter(new Attack[] {
-            new Attack("Attacke 1", 20, 10),
-            new Attack("Attacke 2", 35, 25),
-            new Attack("Attacke 3", 10, 0),
-            new Attack("Attacke 4", 50, 60)
-        });
+        Fighter bitter = new Fighter(playerAttacks);
 
-        Fighter hackerFighter = new Fighter(new Attack[] {
-            new Attack("Hack 1", 15, 5),
-            new Attack("Hack 2", 30, 20)
-        });
+        Fighter hackerFighter = new Fighter(new Attack[] {});
 
         bitter.hp = 50;
         bitter.energy = 100;

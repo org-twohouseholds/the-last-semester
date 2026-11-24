@@ -7,11 +7,24 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.extracreditstudios.thelastsemester.screens.HomeScreen;
+import java.util.ArrayList;
+import java.util.List;
+import com.extracreditstudios.thelastsemester.battleScreen.Attack;
 
 public class TheLastSemesterGame extends Game {
 
     private Skin skin;
     private Preferences prefs;
+    private int cp = 0;
+    private final List<Attack> unlockedAttacks = new ArrayList<>();
+
+    public int getCP() {
+        return cp;
+    }
+
+    public void addCP(int amount) {
+        cp += amount;
+    }
 
     @Override
     public void create() {
@@ -21,6 +34,7 @@ public class TheLastSemesterGame extends Game {
         //setScreen(new HomeScreen(this));
         setScreen(new HomeScreen(this));
         //setScreen(new LoginScreen(this));
+        unlockedAttacks.add(new Attack("Basic Attack", 10, 0));
     }
 
     public void goTo(Screen next) {
@@ -31,6 +45,13 @@ public class TheLastSemesterGame extends Game {
                 old.dispose();
             }
         });
+    }
+    public void addAttack(Attack attack) {
+        unlockedAttacks.add(attack);
+    }
+
+    public List<Attack> getUnlockedAttacks() {
+        return unlockedAttacks;
     }
 
     public Skin getSkin() {
