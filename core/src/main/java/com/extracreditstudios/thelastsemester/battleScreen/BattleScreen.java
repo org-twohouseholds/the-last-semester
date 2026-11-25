@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -67,6 +68,10 @@ public class BattleScreen extends ScreenAdapter {
     private boolean battleFinished = false;
     private final String[] players;
 
+    // Clientseitige Serverkommunikation
+    private FightClient fightClient;
+    private boolean serverConnected = false;
+
 
     public BattleScreen(TheLastSemesterGame game, String[] players) {
         this.game = game;
@@ -81,6 +86,12 @@ public class BattleScreen extends ScreenAdapter {
         drawables = new UiDrawableFactory();
 
         loadResources();
+        // FightClient vorbereiten
+        fightClient = new FightClient(
+            "https://the-last-semester.twohouseholds.com",
+            null
+        );
+
         createTestBattle();   // replace with real logic later
 
         sceneView = new SceneView(stage);
@@ -101,6 +112,47 @@ public class BattleScreen extends ScreenAdapter {
         perkAnimation = new PerkAnimation(stage, attackFont);
         passiveAnimation = new PassiveAnimation(stage, attackFont);
         Gdx.input.setInputProcessor(stage);
+    }
+
+    /**
+     * Verarbeitet den aktuellen Kampfzustand vom Server.
+     * Die konkrete Zuordnung zu Battle erfolgt später,
+     * sobald das Serverteam das Antwortformat festgelegt hat.
+     */
+    private void handleServerUpdate(JsonValue response) {
+        if (response == null) {
+            Gdx.app.log("BattleScreen", "Leere Serverantwort erhalten.");
+            return;
+        }
+
+        Gdx.app.log("BattleScreen", "Serverantwort: " + response.toString());
+    }
+
+    private void pollFight() {
+        if (fightClient == null) {
+            return;
+        }
+
+        fightClient.poll(
+            this::handleServerUpdate,
+            error -> Gdx.app.error("BattleScreen", error)
+        );
+    }
+
+    private void sendAttackToServer(Attack attack, int turnNumber) {
+        if (fightClient == null || attack == null) {
+            return;
+        }
+
+        fightClient.select(
+            attack.name,
+            turnNumber,
+            error -> {
+                if (error != null) {
+                    Gdx.app.error("BattleScreen", error);
+                }
+            }
+        );
     }
 
     private void loadResources() {
