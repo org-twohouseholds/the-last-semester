@@ -20,6 +20,10 @@
   - `POST /api/account/delete` (DELETE poorly supports body)
   - input: header w/ protocol version & session token + `{ password }`
   - output: HTTP status code
+- delete account with username and password
+  - `POST /api/account/delete-with-credentials`
+  - Send the `protocol-version` header and `{ username, password }` in the JSON body.
+  - Returns `204 No Content` on success.
 - change password
   - `PUT /api/account/password`
   - input: header w/ protocol version & session token + `{ old_password, new_password }`

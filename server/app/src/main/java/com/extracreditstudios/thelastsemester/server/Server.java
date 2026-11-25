@@ -16,12 +16,14 @@ import io.javalin.config.JavalinConfig;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpResponseException;
+import io.javalin.http.NotFoundResponse;
 import io.javalin.http.UnauthorizedResponse;
 import io.javalin.http.staticfiles.Location;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.function.Consumer;
 
 import javax.sql.DataSource;
@@ -52,6 +54,7 @@ public class Server {
         server.before("/api/*", Server::checkProtocolVersion);
         setupRegister(server, ds);
         setupDelete(server, ds);
+        setupDeleteWithCredentials(server, ds);
         setupLogin(server, ds);
         setupLogout(server, ds);
         setupChangePassword(server, ds);
@@ -92,6 +95,16 @@ public class Server {
         return session_token;
     }
 
+    private static String getPasswordHashBySessionTokenHash(Context ctx, DataSource ds, String sessionTokenHash)
+        throws SQLException {
+        String passwordHash = AccountStore.findPasswordHash(ds, sessionTokenHash);
+        if (passwordHash == null) {
+            ctx.header("WWW-Authenticate", "Bearer");
+            throw new UnauthorizedResponse("A valid session token is required");
+        }
+        return passwordHash;
+    }
+
     private static void setupRegister(Javalin server, DataSource ds) {
         server.post("/api/auth/register", ctx -> {
             Register.Request request = MessageValidator.validateRegisterRequest(ctx);
@@ -106,20 +119,37 @@ public class Server {
 
     private static void setupDelete(Javalin server, DataSource ds) {
         server.post("/api/account/delete", ctx -> {
+            Delete.Request request = MessageValidator.validateDeleteRequest(ctx);
+
             String session_token = checkAndGetSessionToken(ctx);
             String session_token_hash = SessionTokens.hash(session_token);
-            String password_hash = AccountStore.findPasswordHash(ds, session_token_hash);
-            if (password_hash == null) {
-                ctx.header("WWW-Authenticate", "Bearer");
-                throw new UnauthorizedResponse("A valid session token is required");
-            }
-
-            Delete.Request request = MessageValidator.validateDeleteRequest(ctx);
+            String password_hash = getPasswordHashBySessionTokenHash(ctx, ds, session_token_hash);
 
             if (!Passwords.verify(password_hash, request.password())) {
                 throw new ForbiddenResponse("Incorrect password");
             }
+
             AccountStore.deleteAccount(ds, session_token_hash, password_hash);
+            ctx.status(204);
+        });
+    }
+
+    private static void setupDeleteWithCredentials(Javalin server, DataSource ds) {
+        server.post("/api/account/delete-with-credentials", ctx -> {
+            Delete.WithCredentialsRequest request = MessageValidator.validateDeleteWithCredentialsRequest(ctx);
+            Account account;
+            try {
+                account = AccountStore.getAccount(ds, request.username());
+            } catch (NotFoundResponse e) {
+                throw new ForbiddenResponse("Invalid credentials");
+            }
+
+            if (!Passwords.verify(account.password_hash(), request.password())) {
+                throw new ForbiddenResponse("Invalid credentials");
+            }
+
+            AccountStore.deleteAccountByUsername(ds, account.username(), account.password_hash());
+            ctx.status(204);
         });
     }
 

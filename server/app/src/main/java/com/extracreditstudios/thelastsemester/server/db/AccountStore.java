@@ -94,7 +94,23 @@ public class AccountStore {
         }
     }
 
-    /** Returns false if no account has this session token. */
+    public static void deleteAccountByUsername(DataSource ds, String username, String passwordHash)
+        throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "DELETE FROM account WHERE username = ? " +
+                     "AND CAST(password_hash AS BINARY) = CAST(? AS BINARY)")) {
+            ps.setString(1, username);
+            ps.setString(2, passwordHash);
+            if (ps.executeUpdate() == 0) {
+                throw new ConflictResponse("Account changed before deletion");
+            }
+        }
+    }
+
+    /**
+     * Returns false if no account has this session token.
+     */
     public static boolean selectCharacter(DataSource ds, String session_token_hash,
                                           int character_id) throws SQLException {
         try (Connection c = ds.getConnection();
