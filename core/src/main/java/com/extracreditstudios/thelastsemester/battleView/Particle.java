@@ -26,7 +26,7 @@ public class Particle {
         }
         switch (behaviour){
             case 1:
-                y+=10;
+                y+=4;
         }
         timeToDie--;
         return false;

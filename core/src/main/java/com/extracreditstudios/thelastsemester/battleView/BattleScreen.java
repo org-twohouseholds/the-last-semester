@@ -135,14 +135,11 @@ public class BattleScreen extends ScreenAdapter {
                 if (updateReturn.startsWith("y")) {
                     switch (updateReturn.substring(1)) {
                         case "Attacke 2":
-                            yousprite_greennessTimer = 20;
-                            for (int i = 0; i<=4;i++){
-                               particles.add(new Particle("libgdx32.png", 50+random.nextInt(60), 400+random.nextInt(100), 1, 22));
-                            }
+                            healthGainAnim();
                             break;
                         default:
-                            particles.add(new Particle("libgdx128.png", 240, 400, 0, 5));
-                            enemysprite_rednessTimer = 10;
+                            basicAttackAnim();
+                            break;
                     }
                 }
             }
@@ -249,4 +246,17 @@ public class BattleScreen extends ScreenAdapter {
         if (emptyBar != null) emptyBar.dispose();
     }
 
+    public void healthGainAnim(){
+        yousprite_greennessTimer = 20;
+        for (int i = 0; i<=4;i++){
+            particles.add(new Particle("libgdx32.png", 50+random.nextInt(60), 400+random.nextInt(100), 1, 22));
+        }
+    }
+    public void basicAttackAnim (){
+        particles.add(new Particle("libgdx128.png", 240, 400, 0, 5));
+        enemysprite_rednessTimer = 10;
+    }
+
 }
+
+
