@@ -94,6 +94,18 @@ public class AccountStore {
         }
     }
 
+    /** Returns false if no account has this session token. */
+    public static boolean selectCharacter(DataSource ds, String session_token_hash,
+                                          int character_id) throws SQLException {
+        try (Connection c = ds.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                 "UPDATE account SET selected_character_id = ? WHERE session_token_hash = ?")) {
+            ps.setInt(1, character_id);
+            ps.setString(2, session_token_hash);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
     public static Account getAccount(DataSource ds, String username) throws SQLException {
         try (Connection c = ds.getConnection();
              PreparedStatement ps = c.prepareStatement("SELECT * FROM account WHERE username = ?")) {

@@ -7,6 +7,7 @@ import com.extracreditstudios.thelastsemester.shared.messages.Delete;
 import com.extracreditstudios.thelastsemester.shared.messages.Login;
 import com.extracreditstudios.thelastsemester.shared.messages.Protocol;
 import com.extracreditstudios.thelastsemester.shared.messages.Register;
+import com.extracreditstudios.thelastsemester.shared.messages.SelectCharacter;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -54,6 +55,7 @@ public class Server {
         setupLogin(server, ds);
         setupLogout(server, ds);
         setupChangePassword(server, ds);
+        setupSelectCharacter(server, ds);
         return server;
     }
 
@@ -164,6 +166,19 @@ public class Server {
             AccountStore.changePassword(ds, sessionTokenHash, request.old_password(),
                 request.new_password());
 
+            ctx.status(204);
+        });
+    }
+
+    private static void setupSelectCharacter(Javalin server, DataSource ds) {
+        server.post("/api/character/select", ctx -> {
+            String session_token = checkAndGetSessionToken(ctx);
+            SelectCharacter.Request request = MessageValidator.validateSelectCharacterRequest(ctx);
+            String session_token_hash = SessionTokens.hash(session_token);
+            if (!AccountStore.selectCharacter(ds, session_token_hash, request.character_id())) {
+                ctx.header("WWW-Authenticate", "Bearer");
+                throw new UnauthorizedResponse("A valid session token is required");
+            }
             ctx.status(204);
         });
     }

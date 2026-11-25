@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.extracreditstudios.thelastsemester.server.security.SessionTokens;
 import com.extracreditstudios.thelastsemester.shared.messages.Protocol;
 import io.javalin.Javalin;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ServerTest {
 
@@ -86,6 +88,7 @@ class ServerTest {
         "PUT, /api/account/password",
         "POST, /api/account/delete",
         "GET, /api/account/delete",
+        "POST, /api/character/select",
         "GET, /api/auth/unknown",
     })
     void apiPathsRequireProtocolVersion(String method, String path) throws Exception {
@@ -96,6 +99,7 @@ class ServerTest {
     @CsvSource({
         "GET, /api/auth/login",
         "POST, /api/auth/login",
+        "POST, /api/character/select",
     })
     void apiPathsRejectWrongProtocolVersion(String method, String path) throws Exception {
         HttpRequest.Builder request = request(method, path).header("protocol-version", "0.0.0");
@@ -112,6 +116,48 @@ class ServerTest {
             .POST(HttpRequest.BodyPublishers.ofString("{}"));
 
         assertEquals(400, send(request).statusCode());
+    }
+
+    // The select character tests below fail before the handler touches the database.
+
+    @Test
+    void selectCharacterWithoutSessionTokenIsUnauthorized() throws Exception {
+        HttpResponse<String> response = send(selectCharacter(null, "{\"character_id\": 2}"));
+
+        assertEquals(401, response.statusCode());
+        assertEquals("Bearer", response.headers().firstValue("WWW-Authenticate").orElse(""));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Bearer ", "Bearer invalid", "Basic abc", "invalid"})
+    void selectCharacterWithInvalidSessionTokenIsUnauthorized(String authorization)
+        throws Exception {
+        HttpRequest.Builder request = selectCharacter(null, "{\"character_id\": 2}")
+            .header("Authorization", authorization);
+
+        assertEquals(401, send(request).statusCode());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "{}",                                  // missing character_id
+        "{\"character_id\": null}",
+        "{\"other\": 2}",
+        "{\"character_id\": -1}",              // not a selectable character
+        "{\"character_id\": 4}",
+        "{\"character_id\": 2147483648}",
+        "{\"character_id\": 2.5}",             // not an integer
+        "{\"character_id\": \"2\"}",
+        "{\"character_id\": true}",
+        "{\"character_id\": 2, \"other\": 1}", // unexpected field
+        "",                                    // invalid JSON
+        "{\"character_id\": 2",
+        "{\"character_id\": 2} {}",
+        "[2]",
+        "2",
+    })
+    void selectCharacterWithInvalidBodyIsBadRequest(String body) throws Exception {
+        assertEquals(400, send(selectCharacter(SessionTokens.newToken(), body)).statusCode());
     }
 
     @ParameterizedTest(name = "{0} {1}")
@@ -161,6 +207,23 @@ class ServerTest {
     private static HttpRequest.Builder request(String url, String method, String path) {
         return HttpRequest.newBuilder(URI.create(url + path))
             .method(method, HttpRequest.BodyPublishers.noBody());
+    }
+
+    /** Builds a select character request with a valid protocol version. */
+    static HttpRequest.Builder selectCharacter(String url, String sessionToken, String body) {
+        HttpRequest.Builder request = HttpRequest
+            .newBuilder(URI.create(url + "/api/character/select"))
+            .header("protocol-version", Protocol.VERSION)
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(body));
+        if (sessionToken != null) {
+            request.header("Authorization", "Bearer " + sessionToken);
+        }
+        return request;
+    }
+
+    private static HttpRequest.Builder selectCharacter(String sessionToken, String body) {
+        return selectCharacter(baseUrl, sessionToken, body);
     }
 
     private static HttpResponse<String> send(HttpRequest.Builder request)

@@ -4,6 +4,7 @@ import com.extracreditstudios.thelastsemester.shared.messages.ChangePassword;
 import com.extracreditstudios.thelastsemester.shared.messages.Delete;
 import com.extracreditstudios.thelastsemester.shared.messages.Login;
 import com.extracreditstudios.thelastsemester.shared.messages.Register;
+import com.extracreditstudios.thelastsemester.shared.messages.SelectCharacter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,13 +41,13 @@ public class MessageValidator {
             .get();
     }
 
-    private static final ObjectReader DELETE_REQUEST_READER = new ObjectMapper()
+    private static final ObjectReader REQUEST_BODY_READER = new ObjectMapper()
         .readerFor(JsonNode.class)
         .with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
     public static Delete.Request validateDeleteRequest(Context ctx) {
         try {
-            JsonNode body = DELETE_REQUEST_READER.readValue(ctx.body());
+            JsonNode body = REQUEST_BODY_READER.readValue(ctx.body());
             JsonNode password = body.path("password");
             if (body.isObject() && body.size() == 1 && password.isTextual()
                 && !password.textValue().isEmpty()) {
@@ -54,6 +55,19 @@ public class MessageValidator {
             }
         } catch (JsonProcessingException ignored) {}
         throw new BadRequestResponse("Expected a JSON body with a password");
+    }
+
+    public static SelectCharacter.Request validateSelectCharacterRequest(Context ctx) {
+        try {
+            JsonNode body = REQUEST_BODY_READER.readValue(ctx.body());
+            JsonNode characterId = body.path("character_id");
+            // isInt() rejects strings, decimals and numbers outside the int range
+            if (body.isObject() && body.size() == 1 && characterId.isInt()
+                && SelectCharacter.isSelectableCharacterId(characterId.intValue())) {
+                return new SelectCharacter.Request(characterId.intValue());
+            }
+        } catch (JsonProcessingException ignored) {}
+        throw new BadRequestResponse("Expected a JSON body with a valid character_id");
     }
 
     public static Login.Request validateLoginRequest(Context ctx) {
