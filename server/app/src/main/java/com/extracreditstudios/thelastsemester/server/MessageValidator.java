@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 
@@ -52,7 +51,8 @@ public class MessageValidator {
             if (body.isObject() && password.isTextual() && !password.textValue().isEmpty()) {
                 return body;
             }
-        } catch (JsonProcessingException ignored) {}
+        } catch (JsonProcessingException ignored) {
+        }
         throw new BadRequestResponse("Expected a JSON body with a password");
     }
 
@@ -71,6 +71,8 @@ public class MessageValidator {
             throw new BadRequestResponse("Expected a JSON body with a valid username and a password");
         }
         return new Delete.WithCredentialsRequest(username, body.get("password").textValue());
+    }
+
     public static SelectCharacter.Request validateSelectCharacterRequest(Context ctx) {
         try {
             JsonNode body = REQUEST_BODY_READER.readValue(ctx.body());
@@ -80,7 +82,8 @@ public class MessageValidator {
                 && SelectCharacter.isSelectableCharacterId(characterId.intValue())) {
                 return new SelectCharacter.Request(characterId.intValue());
             }
-        } catch (JsonProcessingException ignored) {}
+        } catch (JsonProcessingException ignored) {
+        }
         throw new BadRequestResponse("Expected a JSON body with a valid character_id");
     }
 

@@ -105,7 +105,12 @@ public class AccountStore {
             if (ps.executeUpdate() == 0) {
                 throw new ConflictResponse("Account changed before deletion");
             }
-    /** Returns false if no account has this session token. */
+        }
+    }
+
+    /**
+     * Returns false if no account has this session token.
+     */
     public static boolean selectCharacter(DataSource ds, String session_token_hash,
                                           int character_id) throws SQLException {
         try (Connection c = ds.getConnection();
