@@ -24,12 +24,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.Disposable;
 
+import javax.imageio.metadata.IIOMetadata;
+
 public class PerkAnimation implements Disposable {
 
     private static final Color HIT_COLOR = new Color(1f, 0.4f, 0.4f, 1f);
     private static final Color COFFEE_COLOR = new Color(0.45f, 0.27f, 0.12f, 1f);
     private static final Color GHOST_COLOR = new Color(0.6f, 0.85f, 1f, 0.6f);
-    private static final Color LEAFY_GREEN = new Color(0.4f,0.8f,0.185,1);
+    private static final Color LEAFY_GREEN = new Color(0.4f,0.8f,0.185f,1);
 
     private final Stage stage;
     private final BitmapFont font;
@@ -56,7 +58,10 @@ public class PerkAnimation implements Disposable {
             case "Copy & Paste":
                 copyPaste(attacker, target, damage);
                 break;
-            // TODO: All-Nighter, Group Project, Deadline Panic,
+            case "Group Project":
+                groupProject(attacker, target, damage);
+                break;
+            // TODO: All-Nighter, Deadline Panic,
             //       Office Hours, Mensa Special, Plagiarism
             default:
                 basicAttack(attacker, target, damage);
@@ -116,21 +121,40 @@ public class PerkAnimation implements Disposable {
         hit(target, damage, 0.55f);
     }
 
-    //user flashes green, health gained is shown
-    private void healed(Image attacker, int damageHealed, float startDelay) {
-        attacker.addAction(sequence(
-            delay(startDelay),
-            color(LEAFY_GREEN, 0.05f),
-            moveBy(0f, 8f, 0.04f),
-            moveBy(0f, 3f, 0.08f),
-            moveBy(0f, -3f, 0.04f),
-            moveBy(0f, -8f, 0.04f),
-            color(Color.WHITE, 0.25f)
+    // 2 copies of the attacker shoot at the target, the attacker does nothing
+    private void groupProject(Image attacker, Image target, int damage) {
+        float dir = direction(attacker, target);
+        Image teamMember1 = new Image(attacker.getDrawable());
+        Image teamMember2 = new Image(attacker.getDrawable());
+
+        for(Image tm : new Image[]{teamMember1, teamMember2}){
+            tm.setBounds(attacker.getX(), attacker.getY(),
+                attacker.getWidth(), attacker.getHeight());
+            tm.setColor(1, 1, 0, 1f);
+            tm.setTouchable(Touchable.disabled);
+            stage.addActor(tm);
+        }
+
+        teamMember1.addAction(sequence(
+            moveBy(dir * 25f, 0f, 0.18f, Interpolation.pow2In)
         ));
-        if (damageHealed > 0) {
-            popText("+" + damageHealed, attacker, Color.GREEN, startDelay);
+
+        teamMember2.addAction(sequence(
+            moveBy(dir * 13f, 0f, 0.18f, Interpolation.pow2In)
+            ));
+
+        projectile(teamMember1,target,Color.RED,0.2f,0.25f);
+        projectile(teamMember2,target,Color.RED,0.35f,0.25f);
+        hit(target, damage, 0.55f);
+
+        for(Image tm : new Image[]{teamMember1, teamMember2}){
+            tm.addAction(sequence(
+                fadeOut(0.2f),
+                removeActor()
+            ));
         }
     }
+
 
     // ---------- building blocks ----------
 
@@ -147,6 +171,22 @@ public class PerkAnimation implements Disposable {
         ));
         if (damage > 0) {
             popText("-" + damage, target, Color.RED, startDelay);
+        }
+    }
+
+    //user flashes green, health gained is shown
+    private void healed(Image attacker, int damageHealed, float startDelay) {
+        attacker.addAction(sequence(
+            delay(startDelay),
+            color(LEAFY_GREEN, 0.05f),
+            moveBy(0f, 8f, 0.04f),
+            moveBy(0f, 3f, 0.08f),
+            moveBy(0f, -3f, 0.04f),
+            moveBy(0f, -8f, 0.04f),
+            color(Color.WHITE, 0.25f)
+        ));
+        if (damageHealed > 0) {
+            popText("+" + damageHealed, attacker, Color.GREEN, startDelay);
         }
     }
 
