@@ -15,7 +15,9 @@ dependencies {
     implementation("de.mkammerer:argon2-jvm:2.11")
     testImplementation(platform("org.junit:junit-bom:6.1.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-mysql:2.0.5")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("com.h2database:h2:2.5.252")
 }
 
 tasks.test {

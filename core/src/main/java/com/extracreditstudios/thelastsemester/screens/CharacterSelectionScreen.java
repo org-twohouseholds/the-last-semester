@@ -1,95 +1,194 @@
 package com.extracreditstudios.thelastsemester.screens;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.ScreenAdapter;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Scaling;
+import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 
+public class CharacterSelectionScreen extends BaseScreen {
 
-public class CharacterSelectionScreen extends ScreenAdapter{
-    private Stage stage;
-    private Skin skin;
+    private static final String[] CHARACTERS = {
+        "The Hacker",
+        "The Esoteric",
+        "The Bitter One",
+        "The Alcoholic"
+    };
 
-    public CharacterSelectionScreen() {
+    private static final String[] DESCRIPTIONS = {
+        "Always buried in code and terminals. Finds shortcuts nobody else notices.",
+        "Guided by crystals, horoscopes, and questionable campus wisdom.",
+        "Fueled by cynicism and too many group projects gone wrong.",
+        "Survives every lecture through sheer willpower and questionable drinks."
+    };
+
+    // Update these paths to match the exact .png filenames in your assets folder
+    private static final String[] IMAGE_PATHS = {
+        "hacker.png",
+        "esoteric.png",
+        "bitter.png",
+        "alcoholic.png"
+    };
+
+    private static final String BACKGROUND_FILE =
+        "finaldesign_data/setting_background.png";
+
+    private static final String BUTTON_FILE =
+        "finaldesign_data/button_new_yellow.png";
+
+    private static final String BACK_BUTTON_FILE =
+        "finaldesign_data/button_setting.png";
+
+    private static final float BUTTON_WIDTH_FRAC = 0.76f;
+
+    private static final float BUTTON_X = 0.51f;
+    private static final float[] BUTTON_Y = {0.45f, 0.55f, 0.65f, 0.75f};
+
+    private static final float BACK_X = 0.51f;
+    private static final float BACK_Y = 0.87f;
+
+    private final DesignKit kit = new DesignKit();
+
+    private Texture bgTexture;
+    private Texture buttonTexture;
+    private Texture backButtonTexture;
+
+    public CharacterSelectionScreen(TheLastSemesterGame game) {
+        super(game);
     }
 
     @Override
-    public void show() {
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage);
+    protected void buildUi() {
+        bgTexture = kit.texture(BACKGROUND_FILE);
+        buttonTexture = kit.texture(BUTTON_FILE);
+        backButtonTexture = kit.texture(BACK_BUTTON_FILE);
 
-        skin = new Skin(Gdx.files.internal("ui/lobby/design_sammlung.json"));
+        float buttonAspect =
+            buttonTexture.getHeight() / (float) buttonTexture.getWidth();
 
-        Table mainTable = new Table();
-        mainTable.setFillParent(true);
-        stage.addActor(mainTable);
+        float backButtonAspect =
+            backButtonTexture.getHeight() / (float) backButtonTexture.getWidth();
 
-        Label titleLabel = new Label("Character", skin, "title");
-        mainTable.add(titleLabel).colspan(2).padBottom(30).row();
+        Board board = new Board(bgTexture, buttonAspect);
 
-        String[] characters = {
-            "The Hacker", "The Forever Student",
-            "The Ghost", "The Flirt",
-            "Prof", "Sweet Grandma",
-            "The Caffeine Addict", "The Overachiever",
-            "The Party Animal", "The Commuter",
-            "The Library Camper", "The Procrastinator"
-        };
-
-        Table gridTable = new Table();
-        for (int i = 0; i < characters.length; i++) {
-            //ImageTextButton charButton = new ImageTextButton(characters[i], skin, "default");
-            TextButton charButton = new TextButton(characters[i], skin, "default");
-            if (characters[i].equals("The Ghost")) {
-                charButton.setChecked(true);
-            }
-
-            gridTable.add(charButton).width(240).height(80).pad(10);
-
-            if ((i + 1) % 2 == 0) {
-                gridTable.row();
-            }
+        // Charakterauswahl
+        for (int i = 0; i < CHARACTERS.length; i++) {
+            final int index = i;
+            board.place(
+                plateButton(
+                    CHARACTERS[index],
+                    () -> game.goTo(
+                        new CharacterInfoScreen(
+                            game,
+                            CHARACTERS[index],
+                            DESCRIPTIONS[index],
+                            IMAGE_PATHS[index]
+                        )
+                    )
+                ),
+                BUTTON_X,
+                BUTTON_Y[index],
+                BUTTON_WIDTH_FRAC
+            );
         }
 
-        mainTable.add(gridTable).colspan(2).padBottom(40).row();
+        board.place(
+            backButton(),
+            BACK_X,
+            BACK_Y,
+            BUTTON_WIDTH_FRAC * 0.55f,
+            backButtonAspect
+        );
 
-        TextButton backButton = new TextButton("Back", skin);
-        backButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                System.out.println("Navigating back to Home Screen...");
-            }
-        });
+        stage.addActor(board);
+        board.toBack();
+    }
 
-        mainTable.add(backButton).width(240).height(60).colspan(2);
+    private Table plateButton(String text, Runnable action) {
+        return kit.imageButton(
+            text,
+            buttonTexture,
+            DesignKit.TEXT_DARK,
+            1.3f,
+            action
+        );
+    }
+
+    private Table backButton() {
+        return kit.imageButton(
+            "Back",
+            backButtonTexture,
+            Color.BLACK,
+            1.2f,
+            this::onBack
+        );
     }
 
     @Override
-    public void render(float delta) {
-        Gdx.gl.glClearColor(0.14f, 0.15f, 0.20f, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
-        stage.draw();
-    }
-
-    @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
+    protected void onBack() {
+        game.goTo(new HomeScreen(game));
     }
 
     @Override
     public void dispose() {
-        stage.dispose();
-        skin.dispose();
+        super.dispose();
+        kit.dispose();
     }
 
+    private static class Board extends WidgetGroup {
+
+        private final Image bg;
+        private final float buttonAspect;
+
+        private final Array<Actor> items = new Array<>();
+        private final Array<float[]> pos = new Array<>();
+
+        Board(Texture texture, float buttonAspect) {
+            this.buttonAspect = buttonAspect;
+
+            bg = new Image(texture);
+            bg.setScaling(Scaling.stretch);
+
+            addActor(bg);
+            setFillParent(true);
+        }
+
+        void place(Actor actor, float fx, float fyFromTop, float widthFrac) {
+            place(actor, fx, fyFromTop, widthFrac, buttonAspect);
+        }
+
+        void place(Actor actor, float fx, float fyFromTop, float widthFrac, float aspect) {
+            addActor(actor);
+            items.add(actor);
+            pos.add(new float[]{fx, fyFromTop, widthFrac, aspect});
+        }
+
+        @Override
+        public void layout() {
+            float w = getWidth();
+            float h = getHeight();
+
+            bg.setBounds(0, 0, w, h);
+
+            for (int i = 0; i < items.size; i++) {
+                Actor actor = items.get(i);
+                float[] p = pos.get(i);
+
+                if (p[2] > 0f) {
+                    float actorWidth = p[2] * w;
+                    float actorHeight = actorWidth * p[3];
+                    actor.setSize(actorWidth, actorHeight);
+                }
+
+                actor.setPosition(
+                    p[0] * w - actor.getWidth() / 2f,
+                    (1f - p[1]) * h - actor.getHeight() / 2f
+                );
+            }
+        }
+    }
 }

@@ -1,0 +1,70 @@
+
+design_sammlung.png
+size: 2048, 2048
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+PressStart2P-Regular
+  rotate: false
+  xy: 1128, 1819
+  size: 505, 93
+  orig: 505, 93
+  offset: 0, 0
+  index: -1
+Ellipse 1
+  rotate: false
+  xy: 1635, 1852
+  size: 60, 60
+  orig: 60, 60
+  offset: 0, 0
+  index: -1
+Group 3
+  rotate: false
+  xy: 1128, 1651
+  size: 108, 108
+  orig: 108, 108
+  offset: 0, 0
+  index: -1
+Rectangle 33
+  rotate: false
+  xy: 1003, 1271
+  size: 118, 136
+  orig: 118, 136
+  offset: 0, 0
+  index: -1
+button_back_2
+  rotate: false
+  xy: 1, 349
+  size: 160, 56
+  orig: 160, 56
+  offset: 0, 0
+  index: -1
+buttonbeige
+  rotate: false
+  xy: 1128, 1761
+  size: 160, 56
+  orig: 160, 56
+  offset: 0, 0
+  index: -1
+n_button_back
+  rotate: false
+  xy: 1, 1409
+  size: 1125, 503
+  split: 562, 562, 251, 251
+  orig: 1125, 503
+  offset: 0, 0
+  index: -1
+tom-ff-3-x9LSAQ7_V1s-unsplash - Kopie2_klein
+  rotate: false
+  xy: 1, 407
+  size: 1000, 1000
+  orig: 1000, 1000
+  offset: 0, 0
+  index: -1
+Screenshot 2026-11-11 085916
+  rotate: false
+  xy: 1, 1
+  size: 148, 346
+  orig: 148, 346
+  offset: 0, 0
+  index: -1
