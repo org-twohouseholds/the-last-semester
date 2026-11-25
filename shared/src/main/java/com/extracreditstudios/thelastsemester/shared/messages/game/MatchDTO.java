@@ -2,7 +2,6 @@ package com.extracreditstudios.thelastsemester.shared.messages.game;
 
 import com.extracreditstudios.thelastsemester.shared.model.MatchStatus;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Fight information from one player's perspective, following the UML.

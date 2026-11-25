@@ -29,19 +29,22 @@ class MatchPlaythroughTest {
     private final Ability aussitzen = new Ability("Aussitzen", 8, 0, 4, List.of());
     private final Ability altklausur = new Ability("Altklausur", 20, 10, 9, List.of());
 
-    private final TournamentParticipation hacker = fighter("Hacker", 80, 30, tippen, exploit, simpleHealAbility);
-    private final TournamentParticipation student = fighter("Ewiger Student", 100, 20, aussitzen, altklausur, simpleHealAbility);
+    private final Player terence = new Player("Terence");
+    private final Player kim = new Player("Kim");
+
+    private final TournamentParticipation hacker = fighter("Hacker", 80, 30, tippen, exploit, simpleHealAbility, kim);
+    private final TournamentParticipation student = fighter("Ewiger Student", 100, 20, aussitzen, altklausur, simpleHealAbility, terence);
     private final Match match = new Match(hacker, student, effectSystem);
 
     public void setUpGame(){
         effectSystem.getRegistry().register(simpleHealEffect);
     }
 
-    private static TournamentParticipation fighter(String name, int hp, int energy, Ability basicAttack, Ability perk, Ability perk2) {
+    private static TournamentParticipation fighter(String name, int hp, int energy, Ability basicAttack, Ability perk, Ability perk2, Player player) {
         CharacterInstance instance = new CharacterInstance(new Character(name, hp, energy, basicAttack));
         instance.addPerk(perk);
         instance.addPerk(perk2);
-        return new TournamentParticipation(instance);
+        return new TournamentParticipation(instance, player);
     }
 
     private void playTurn(Ability hackerChoice, Ability studentChoice) {

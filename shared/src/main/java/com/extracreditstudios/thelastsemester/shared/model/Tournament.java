@@ -18,21 +18,7 @@ public class Tournament {
             throw new IllegalArgumentException("A tournament needs at least 2 participants");
         }
         this.participants = List.copyOf(participants);
-        List<TournamentParticipation> copyParticipants = new ArrayList<>(participants);
-        int tournamntSize = copyParticipants.size();
-        this.bracket = new ArrayList<>();
-
-        //TODO error handling and bot fill up
-        //Fill the Bracket with the participants in a random order
-        for(int i = 0; i < (tournamntSize/2); i++){
-            int randomIndex = (int) Math.floor(Math.random() * copyParticipants.size());
-            TournamentParticipation participantA = copyParticipants.get(randomIndex);
-            copyParticipants.remove(randomIndex);
-            randomIndex = (int) Math.floor(Math.random() * copyParticipants.size());
-            TournamentParticipation participantB = copyParticipants.get(randomIndex);
-            copyParticipants.remove(randomIndex);
-            this.bracket.add(new Match(participantA, participantB, effectSystem));
-        }
+        this.bracket = createBracket(this.participants, effectSystem);
     }
 
     public void start() {
@@ -41,6 +27,7 @@ public class Tournament {
         }
         status = TournamentStatus.RUNNING;
         currentRound = 1;
+
     }
 
     public void advanceRound() {
@@ -51,6 +38,25 @@ public class Tournament {
     public void finishTournament() {
         requireRunning();
         status = TournamentStatus.FINISHED;
+    }
+
+    public ArrayList<Match> createBracket(List<TournamentParticipation> participants, EffectSystem effectSystem){
+        List<TournamentParticipation> copyParticipants = new ArrayList<>(participants);
+        int tournamentSize = copyParticipants.size();
+        ArrayList<Match> bracket = new ArrayList<>();
+
+        //TODO error handling
+        //Fill the Bracket with the participants in a random order
+        for(int i = 0; i < (tournamentSize/2); i++){
+            int randomIndex = (int) Math.floor(Math.random() * copyParticipants.size());
+            TournamentParticipation participantA = copyParticipants.get(randomIndex);
+            copyParticipants.remove(randomIndex);
+            randomIndex = (int) Math.floor(Math.random() * copyParticipants.size());
+            TournamentParticipation participantB = copyParticipants.get(randomIndex);
+            copyParticipants.remove(randomIndex);
+            this.bracket.add(new Match(participantA, participantB, effectSystem));
+        }
+        return bracket;
     }
 
     public ArrayList<Match> getBracket() {

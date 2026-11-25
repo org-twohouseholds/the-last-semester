@@ -24,13 +24,14 @@ class MatchTest {
     private final Ability attack = new Ability("Attack", 10, 0, 5, List.of());
     private final Ability slowAttack = new Ability("Slow Attack", 10, 0, 3, List.of());
     private final EffectSystem effectSystem = new EffectSystem();
+    private final static Player enrico = new Player("Enrico");
     private TournamentParticipation alice;
     private TournamentParticipation bob;
     private Match match;
 
     private static TournamentParticipation newFighter(Ability basicAttack) {
         return new TournamentParticipation(
-            new CharacterInstance(new Character("Test", 100, 50, basicAttack)));
+            new CharacterInstance(new Character("Test", 100, 50, basicAttack)), enrico);
     }
 
     @BeforeEach

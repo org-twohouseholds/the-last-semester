@@ -8,27 +8,27 @@ import java.util.Map;
 /** One 1v1 fight. Both sides choose in secret, then the turn is resolved. */
 public class Match {
 
-    private final Combatant combatantA;
-    private final Combatant combatantB;
-    private final Map<Combatant, Ability> pendingActions = new HashMap<>();
+    private final TournamentParticipation participantA;
+    private final TournamentParticipation participantB;
+    private final Map<TournamentParticipation, Ability> pendingActions = new HashMap<TournamentParticipation, Ability>();
     private int turnNumber = 1;
     private MatchStatus status = MatchStatus.IN_PROGRESS;
     private final EffectSystem effectSystem;
 
-    public Match(Combatant combatantA, Combatant combatantB, EffectSystem effectSystem) {
-        this.combatantA = combatantA;
-        this.combatantB = combatantB;
+    public Match(TournamentParticipation combatantA, TournamentParticipation combatantB, EffectSystem effectSystem) {
+        this.participantA = combatantA;
+        this.participantB = combatantB;
         this.effectSystem = effectSystem;
     }
 
     /** Stores the secret choice of a combatant. Returns false if the action is not allowed. */
-    public boolean submitAbility(Combatant combatant, Ability ability) {
+    public boolean submitAbility(TournamentParticipation participant, Ability ability) {
         boolean allowed = status == MatchStatus.IN_PROGRESS
-            && isParticipant(combatant)
-            && !pendingActions.containsKey(combatant)
-            && combatant.getCharacter().canUse(ability);
+            && isParticipant(participant)
+            && !pendingActions.containsKey(participant)
+            && participant.getCharacter().canUse(ability);
         if (allowed) {
-            pendingActions.put(combatant, ability);
+            pendingActions.put(participant, ability);
         }
         return allowed;
     }
@@ -42,8 +42,8 @@ public class Match {
         if (!bothSubmitted()) {
             throw new IllegalStateException("Both combatants must submit an action first");
         }
-        Combatant first = findFasterCombatant();
-        Combatant second = first == combatantA ? combatantB : combatantA;
+        TournamentParticipation first = findFasterCombatant();
+        TournamentParticipation second = first == participantA ? participantB : participantA;
 
         //For every point in the Match for which a EventTiming exists, there has to be a call to apply the Effect through the effectSystem
         effectSystem.applyEffects(first.getCharacter(), second.getCharacter(), EffectTiming.BEFORE_ATTACK);
@@ -66,12 +66,31 @@ public class Match {
         effectSystem.applyEffects(second.getCharacter(), first.getCharacter(), EffectTiming.AFTER_TURN);
     }
 
-    public Combatant determineWinner() {
+
+    public TournamentParticipation determineWinner() {
         if (status != MatchStatus.FINISHED) {
             throw new IllegalStateException("The match is not finished yet");
         }
-        return combatantA.getCharacter().isDefeated() ? combatantB : combatantA;
+        return participantA.getCharacter().isDefeated() ? participantB : participantA;
     }
+
+    private TournamentParticipation findFasterCombatant() {
+
+        //If both have the same speed its randowm who comes first TODO maybe implement seed
+        if (pendingActions.get(participantB).speed() > pendingActions.get(participantA).speed()) {
+            return participantB;
+        }else if(pendingActions.get(participantB).speed() == pendingActions.get(participantA).speed()){
+            return Math.random() < 0.5 ? participantA : participantB;
+        }
+        return participantA;
+    }
+
+    private void executeAction(TournamentParticipation actor, TournamentParticipation target) {
+        Ability ability = pendingActions.get(actor);
+        actor.getCharacter().useAbility(ability, effectSystem.getRegistry());
+        target.getCharacter().takeDamage((int) (ability.baseDamage() * actor.getCharacter().getDmgAmplification() * target.getCharacter().getDmgReduction()));
+    }
+
 
     public int getTurnNumber() {
         return turnNumber;
@@ -81,21 +100,24 @@ public class Match {
         return status;
     }
 
-    private boolean isParticipant(Combatant combatant) {
-        return combatant == combatantA || combatant == combatantB;
+    public TournamentParticipation getParticipantA() {
+        return participantA;
     }
 
-    private Combatant findFasterCombatant() {
-        // TODO team decision: what happens at equal speed? For now combatant A goes first.
-        if (pendingActions.get(combatantB).speed() > pendingActions.get(combatantA).speed()) {
-            return combatantB;
-        }
-        return combatantA;
+    public TournamentParticipation getParticipantB() {
+        return participantB;
     }
 
-    private void executeAction(Combatant actor, Combatant target) {
-        Ability ability = pendingActions.get(actor);
-        actor.getCharacter().useAbility(ability, effectSystem.getRegistry());
-        target.getCharacter().takeDamage((int) (ability.baseDamage() * actor.getCharacter().getDmgAmplification() * target.getCharacter().getDmgReduction()));
+    public void setStatus(MatchStatus status) {
+        this.status = status;
     }
+
+    public Map<TournamentParticipation, Ability> getPendingActions() {
+        return pendingActions;
+    }
+
+    private boolean isParticipant(TournamentParticipation participant) {
+        return participant == participantA || participant == participantB;
+    }
+
 }

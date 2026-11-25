@@ -4,20 +4,17 @@ import java.util.List;
 /** One participant of one tournament. */
 public class TournamentParticipation implements Combatant {
 
-    private Player player;
+    private final Player player;
     private final CharacterInstance character;
     private boolean eliminated;
 
-    public TournamentParticipation(CharacterInstance character) {
+    public TournamentParticipation(CharacterInstance character, Player player) {
         this.character = character;
+        this.player = player;
     }
 
     public Player getPlayer() {
         return player;
-    }
-
-    public void setPlayer(Player player) {
-        this.player = player;
     }
 
     public void eliminate() {

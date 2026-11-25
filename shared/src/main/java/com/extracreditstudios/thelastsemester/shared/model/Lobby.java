@@ -1,5 +1,7 @@
 package com.extracreditstudios.thelastsemester.shared.model;
 
+import com.extracreditstudios.thelastsemester.shared.model.effectsystem.EffectSystem;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,12 +21,15 @@ public class Lobby {
 
     private Long deadlineMillis;
 
+    private final EffectSystem effectSystem;
 
-    public Lobby(String lobbyID, long startAfterMilis) {
+
+    public Lobby(String lobbyID, long startAfterMilis, EffectSystem effectSystem) {
         this.lobbyID = lobbyID;
         playerList = new ArrayList<>();
         phase = GamePhase.LOBBY;
         deadlineMillis = System.currentTimeMillis() + startAfterMilis;
+        this.effectSystem = effectSystem;
     }
 
     public String getLobbyID() {
@@ -67,23 +72,22 @@ public class Lobby {
         return tournament;
     }
 
-    /* TODO
     public void addPlayer(Player player){
-    if(maxPlayers > playerList.size()){
-    playerList.add(player);
+        if(maxPlayers > playerList.size()){
+            playerList.add(player);
+        }else{
+            throw new IllegalArgumentException("The Lobby is already full.");
+        }
     }
-    }*/
 
     public void startTournament(){
         List<TournamentParticipation> participants = this.playerList.stream()
             .map(player -> {
                 Character character = player.getCharacter();
                 CharacterInstance characterInstance = new CharacterInstance(character);
-                TournamentParticipation participant = new TournamentParticipation(characterInstance);
-                participant.setPlayer(player);
-                return participant;
+                return new TournamentParticipation(characterInstance, player);
             }).toList();
-        this.tournament = new Tournament(participants, null);
+        this.tournament = new Tournament(participants, effectSystem);
         this.tournament.start();
     }
 
