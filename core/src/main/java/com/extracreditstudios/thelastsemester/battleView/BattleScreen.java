@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 import com.badlogic.gdx.Screen;
+import java.util.*;
 
 public class BattleScreen extends ScreenAdapter {
 
@@ -41,6 +42,7 @@ public class BattleScreen extends ScreenAdapter {
 
     private float youSprite_xOffset;
     private float yousprite_yOffset;
+    private int yousprite_greennessTimer;
     private float enemysprite_xOffset;
     private float enemysprite_yOffset;
     private int enemysprite_rednessTimer;
@@ -52,6 +54,10 @@ public class BattleScreen extends ScreenAdapter {
 
     private AttackButton[] attackButtons;
     private Battle battle;
+
+    private ArrayList<Particle> particles = new ArrayList<Particle>();
+
+    private Random random = new Random();
 
 
     @Override
@@ -126,7 +132,19 @@ public class BattleScreen extends ScreenAdapter {
             delta = Math.min(delta, 0.05f);
             String updateReturn = battle.update(delta);
             if (updateReturn != null){
-                enemysprite_rednessTimer=10;
+                if (updateReturn.startsWith("y")) {
+                    switch (updateReturn.substring(1)) {
+                        case "Attacke 2":
+                            yousprite_greennessTimer = 20;
+                            for (int i = 0; i<=4;i++){
+                               particles.add(new Particle("libgdx32.png", 50+random.nextInt(60), 400+random.nextInt(100), 1, 22));
+                            }
+                            break;
+                        default:
+                            particles.add(new Particle("libgdx128.png", 240, 400, 0, 5));
+                            enemysprite_rednessTimer = 10;
+                    }
+                }
             }
 
         }
@@ -154,14 +172,25 @@ public class BattleScreen extends ScreenAdapter {
 
         batch.draw(background, 0, 0,
             viewport.getWorldWidth(), viewport.getWorldHeight());
-
+        if(yousprite_greennessTimer>0) {
+            batch.setColor(0.5f, 1f, 0.5f, 1);
+            yousprite_greennessTimer-=1;
+        }
         batch.draw(youSprite, -10+youSprite_xOffset, 180+yousprite_yOffset, 170, 430);
         if(enemysprite_rednessTimer>0) {
-            batch.setColor(1.1f, 0.5f, 0.5f, 1);
+            batch.setColor(1f, 0.5f, 0.5f, 1);
             enemysprite_rednessTimer-=1;
-        }
+        } else {batch.setColor(1, 1, 1, 1);}
         batch.draw(enemySprite, 400+enemysprite_xOffset, 200+enemysprite_yOffset, -150, 400);
         batch.setColor(1, 1, 1, 1);
+
+        for (int i = particles.size()-1; i>=0; i--){
+            Particle p = particles.get(i);
+            batch.draw(p.look,p.x,p.y,p.width,p.height);
+            if (p.updateParticle()){
+                particles.remove(p);
+            }
+        }
 
         playerHp.draw(batch, battle.player.hp);
         playerMana.draw(batch, battle.player.mana);
