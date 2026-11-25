@@ -4,6 +4,7 @@ import com.extracreditstudios.thelastsemester.shared.messages.ChangePassword;
 import com.extracreditstudios.thelastsemester.shared.messages.Delete;
 import com.extracreditstudios.thelastsemester.shared.messages.Login;
 import com.extracreditstudios.thelastsemester.shared.messages.Register;
+import com.extracreditstudios.thelastsemester.shared.messages.SelectAction;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,13 +41,13 @@ public class MessageValidator {
             .get();
     }
 
-    private static final ObjectReader DELETE_REQUEST_READER = new ObjectMapper()
+    private static final ObjectReader REQUEST_BODY_READER = new ObjectMapper()
         .readerFor(JsonNode.class)
         .with(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
 
     public static Delete.Request validateDeleteRequest(Context ctx) {
         try {
-            JsonNode body = DELETE_REQUEST_READER.readValue(ctx.body());
+            JsonNode body = REQUEST_BODY_READER.readValue(ctx.body());
             JsonNode password = body.path("password");
             if (body.isObject() && body.size() == 1 && password.isTextual()
                 && !password.textValue().isEmpty()) {
@@ -69,6 +70,16 @@ public class MessageValidator {
             .check(r -> validateUsername(r.username()),
                 "Username must be 3-20 characters: letters, digits, _")
             .check(r -> validatePassword(r.password()), "Password must be 15-128 characters")
+            .get();
+    }
+
+    public static SelectAction.Request validateSelectAction(Context ctx) {
+        return ctx.bodyValidator(SelectAction.Request.class)
+            .check(r -> r.lobbyId() != null && !r.lobbyId().isBlank(), "Lobby ID is required")
+            .check(r -> r.matchId() != null && !r.matchId().isBlank(), "Match ID is required")
+            .check(r -> r.turn() != null && r.turn() >= 1, "Turn must be at least 1")
+            .check(r -> r.ability() != null && r.ability().name() != null && !r.ability().name().isBlank(),
+                "Ability with a name is required")
             .get();
     }
 

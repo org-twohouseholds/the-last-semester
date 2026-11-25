@@ -7,6 +7,7 @@ import com.extracreditstudios.thelastsemester.shared.messages.Delete;
 import com.extracreditstudios.thelastsemester.shared.messages.Login;
 import com.extracreditstudios.thelastsemester.shared.messages.Protocol;
 import com.extracreditstudios.thelastsemester.shared.messages.Register;
+import com.extracreditstudios.thelastsemester.shared.messages.SelectAction;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -54,6 +55,7 @@ public class Server {
         setupLogin(server, ds);
         setupLogout(server, ds);
         setupChangePassword(server, ds);
+        selectAction(server, ds);
         return server;
     }
 
@@ -165,6 +167,23 @@ public class Server {
                 request.new_password());
 
             ctx.status(204);
+        });
+    }
+
+    private static void selectAction(Javalin server, DataSource ds) {
+        server.post("/api/fight/select", ctx -> {
+            String session_token = checkAndGetSessionToken(ctx);
+            String session_token_hash = SessionTokens.hash(session_token);
+            Account account;
+            try {
+                account = AccountStore.getAccountBySessionTokenHash(ds, session_token_hash);
+            } catch (UnauthorizedResponse e) {
+                ctx.header("WWW-Authenticate", "Bearer");
+                throw new UnauthorizedResponse("A valid session token is required");
+            }
+
+            SelectAction.Request request = MessageValidator.validateSelectAction(ctx);
+            throw new HttpResponseException(501, "Select Action is not implemented yet");
         });
     }
 
