@@ -12,8 +12,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 /**
- * Clientseitige Kommunikation mit den Kampf-Endpunkten.
- * Die Match-ID wird später gesetzt, sobald sie verfügbar ist.
+ * Handles client-side communication with the fight API.
+ * The match ID will be assigned once it becomes available.
  */
 public class FightClient {
 
@@ -26,14 +26,26 @@ public class FightClient {
         this.token = token;
     }
 
+    /**
+     * Assigns the ID of the current match.
+     */
     public void setMatchId(String matchId) {
         this.matchId = matchId;
     }
 
+    /**
+     * Checks whether a match ID is available.
+     */
     public boolean hasMatchId() {
         return matchId != null && !matchId.isEmpty();
     }
 
+    /**
+     * Requests the latest fight information from the server.
+     *
+     * @param onOk    called with the parsed JSON response
+     * @param onError called if the request fails
+     */
     public void poll(Consumer<JsonValue> onOk, Consumer<String> onError) {
         if (!hasMatchId()) {
             onError.accept("Match-ID ist noch nicht verfügbar.");
@@ -58,6 +70,13 @@ public class FightClient {
         }, onError);
     }
 
+    /**
+     * Sends the selected ability to the server.
+     *
+     * @param abilityName name of the selected ability
+     * @param turnNumber  current turn number
+     * @param onResult    receives null on success or an error message
+     */
     public void select(String abilityName, int turnNumber,
                        Consumer<String> onResult) {
         if (!hasMatchId()) {
@@ -86,6 +105,12 @@ public class FightClient {
         }, onResult);
     }
 
+    /**
+     * Creates an HTTP request with the required headers.
+     *
+     * @param method HTTP method (GET or POST)
+     * @param path   API endpoint path
+     */
     private Net.HttpRequest base(String method, String path) {
         Net.HttpRequest req = new HttpRequestBuilder()
             .newRequest()
@@ -99,6 +124,10 @@ public class FightClient {
         return req;
     }
 
+    /**
+     * Sends an HTTP request and handles the response asynchronously.
+     * Callbacks are executed on the LibGDX application thread.
+     */
     private void send(
         Net.HttpRequest req,
         BiConsumer<Integer, String> onResponse,

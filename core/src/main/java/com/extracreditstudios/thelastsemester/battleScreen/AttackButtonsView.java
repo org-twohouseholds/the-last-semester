@@ -14,7 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
-public class AttackButtonsView {
+    public class AttackButtonsView {
 
     private static final float BUTTON_W = 165f;
     private static final float BUTTON_H = 65f;

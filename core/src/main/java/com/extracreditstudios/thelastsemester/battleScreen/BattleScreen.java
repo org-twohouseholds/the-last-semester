@@ -67,10 +67,7 @@ public class BattleScreen extends ScreenAdapter {
 
     private boolean battleFinished = false;
     private final String[] players;
-
-    // Clientseitige Serverkommunikation
     private FightClient fightClient;
-    private boolean serverConnected = false;
 
 
     public BattleScreen(TheLastSemesterGame game, String[] players) {
@@ -88,9 +85,7 @@ public class BattleScreen extends ScreenAdapter {
         loadResources();
         // FightClient vorbereiten
         fightClient = new FightClient(
-            "https://the-last-semester.twohouseholds.com",
-            null
-        );
+            "https://the-last-semester.twohouseholds.com", null);
 
         createTestBattle();   // replace with real logic later
 
