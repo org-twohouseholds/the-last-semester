@@ -53,6 +53,10 @@ public class Tournament {
         status = TournamentStatus.FINISHED;
     }
 
+    public ArrayList<Match> getBracket() {
+        return bracket;
+    }
+
     public List<TournamentParticipation> getParticipants() {
         return participants;
     }

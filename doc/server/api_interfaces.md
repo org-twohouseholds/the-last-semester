@@ -49,16 +49,23 @@
   - `POST /api/lobby/quit`
   - input: header w/ protocol version & session token
   - output: HTTP status code
-- get state (polling)
-  - `GET /api/game`
-  - input: header w/ protocol version & session token
-  - output: `{ phase, ... }`
 - select action
   - `POST /api/fight/select`
   - input: header w/ protocol version & session token + `{ tournament, fight, turn, actionIndex }`
   - output: HTTP status code
 - (create lobby)
 - (kick lobby member)
+
+### Polling
+
+- lobby polling
+  - `GET /api/lobby`
+  - input: header w/ protocol version & session token
+  - output: `{ phase, ... }`
+- match polling
+  - `GET /api/fight`
+  - input: header w/ protocol version & session token
+  - output: `{ ... }`
 
 ### Shop
 
