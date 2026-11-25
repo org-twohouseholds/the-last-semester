@@ -29,6 +29,7 @@ public class PerkAnimation implements Disposable {
     private static final Color HIT_COLOR = new Color(1f, 0.4f, 0.4f, 1f);
     private static final Color COFFEE_COLOR = new Color(0.45f, 0.27f, 0.12f, 1f);
     private static final Color GHOST_COLOR = new Color(0.6f, 0.85f, 1f, 0.6f);
+    private static final Color LEAFY_GREEN = new Color(0.4f,0.8f,0.185,1);
 
     private final Stage stage;
     private final BitmapFont font;
@@ -113,6 +114,22 @@ public class PerkAnimation implements Disposable {
 
         popText("Ctrl+V", target, Color.WHITE, 0.55f);
         hit(target, damage, 0.55f);
+    }
+
+    //user flashes green, health gained is shown
+    private void healed(Image attacker, int damageHealed, float startDelay) {
+        attacker.addAction(sequence(
+            delay(startDelay),
+            color(LEAFY_GREEN, 0.05f),
+            moveBy(0f, 8f, 0.04f),
+            moveBy(0f, 3f, 0.08f),
+            moveBy(0f, -3f, 0.04f),
+            moveBy(0f, -8f, 0.04f),
+            color(Color.WHITE, 0.25f)
+        ));
+        if (damageHealed > 0) {
+            popText("+" + damageHealed, attacker, Color.GREEN, startDelay);
+        }
     }
 
     // ---------- building blocks ----------
