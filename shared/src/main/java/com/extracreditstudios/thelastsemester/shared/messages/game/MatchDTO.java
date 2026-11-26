@@ -7,6 +7,7 @@ import java.util.List;
  * Fight information from one player's perspective, following the UML.
  * Only that player's selected ability is included; the opponent has a readiness flag.
  * Deadlines are nullable Unix epoch milliseconds when no timer has been set.
+ * winnerId is the winning Player UUID as a string, or null while the match is running.
  */
 public record MatchDTO(String matchId, long stateVersion, MatchStatus status, int turnNumber,
                        long serverTimeMillis, Long turnDeadlineMillis, Long matchDeadlineMillis,

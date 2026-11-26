@@ -2,12 +2,20 @@ package com.extracreditstudios.thelastsemester.shared.model;
 
 import com.extracreditstudios.thelastsemester.shared.model.effectsystem.*;
 
+import com.extracreditstudios.thelastsemester.shared.messages.game.AbilityDTO;
+import com.extracreditstudios.thelastsemester.shared.messages.game.CombatantDTO;
+import com.extracreditstudios.thelastsemester.shared.messages.game.MatchDTO;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
 
 /** One 1v1 fight. Both sides choose in secret, then the turn is resolved. */
 public class Match {
 
+    private final String matchId = UUID.randomUUID().toString();
+    private long stateVersion;
     private final TournamentParticipation participantA;
     private final TournamentParticipation participantB;
     private final Map<TournamentParticipation, Ability> pendingActions = new HashMap<TournamentParticipation, Ability>();
@@ -29,6 +37,7 @@ public class Match {
             && participant.getCharacter().canUse(ability);
         if (allowed) {
             pendingActions.put(participant, ability);
+            stateVersion++;
         }
         return allowed;
     }
@@ -64,6 +73,7 @@ public class Match {
         }
         effectSystem.applyEffects(first.getCharacter(), second.getCharacter(), EffectTiming.AFTER_TURN);
         effectSystem.applyEffects(second.getCharacter(), first.getCharacter(), EffectTiming.AFTER_TURN);
+        stateVersion++;
     }
 
 
@@ -92,6 +102,44 @@ public class Match {
     }
 
 
+    public String getMatchId() {
+        return matchId;
+    }
+
+    public long getStateVersion() {
+        return stateVersion;
+    }
+
+    /**
+     * Snapshot for one participant. The server must synchronize this read with combat changes.
+     * Timers and turn-event generation are not implemented yet.
+     */
+    public MatchDTO getState(TournamentParticipation viewer) {
+        if (viewer == null || !isParticipant(viewer)) {
+            throw new IllegalArgumentException("Viewer is not a match participant");
+        }
+        TournamentParticipation opponent = viewer == participantA ? participantB : participantA;
+        List<AbilityDTO> myAbilities = new ArrayList<>();
+        for (Ability ability : viewer.getCharacter().getAbilities()) {
+            myAbilities.add(ability.toDTO());
+        }
+        Ability mySelection = pendingActions.get(viewer);
+        String winnerId = null;
+        if (status == MatchStatus.FINISHED) {
+            winnerId = determineWinner().getPlayer().getPlayerId().toString();
+        }
+        return new MatchDTO(matchId, stateVersion, status, turnNumber, System.currentTimeMillis(),
+            null, null, toCombatantDTO(viewer), toCombatantDTO(opponent), myAbilities,
+            mySelection == null ? null : mySelection.toDTO(), pendingActions.containsKey(opponent),
+            List.of(), winnerId);
+    }
+
+    private CombatantDTO toCombatantDTO(TournamentParticipation participant) {
+        CharacterInstance character = participant.getCharacter();
+        return new CombatantDTO(participant.getPlayer().getPlayerId().toString(), participant.getPlayer().getUsername(),
+            character.getMaxHP(), character.getCurrentHP(), character.getMaxEnergy(), character.getCurrentEnergy());
+    }
+
     public int getTurnNumber() {
         return turnNumber;
     }
@@ -109,11 +157,14 @@ public class Match {
     }
 
     public void setStatus(MatchStatus status) {
-        this.status = status;
+        if (this.status != status) {
+            this.status = status;
+            stateVersion++;
+        }
     }
 
     public Map<TournamentParticipation, Ability> getPendingActions() {
-        return pendingActions;
+        return Map.copyOf(pendingActions);
     }
 
     private boolean isParticipant(TournamentParticipation participant) {

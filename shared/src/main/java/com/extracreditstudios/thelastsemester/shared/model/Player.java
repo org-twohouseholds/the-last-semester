@@ -1,6 +1,9 @@
 package com.extracreditstudios.thelastsemester.shared.model;
 
+import java.util.UUID;
+
 public class Player {
+    private final UUID playerId = UUID.randomUUID();
     private String username;
 
     private Character character;
@@ -22,6 +25,10 @@ public class Player {
 
     public static Player bot(int botNumber, Lobby lobby) {
         return new Player("Bot " + botNumber, true, lobby);
+    }
+
+    public UUID getPlayerId() {
+        return playerId;
     }
 
     public String getUsername() {

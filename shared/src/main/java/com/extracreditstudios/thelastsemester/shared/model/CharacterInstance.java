@@ -74,6 +74,22 @@ public class CharacterInstance {
         return currentEnergy;
     }
 
+    public int getMaxHP() {
+        return maxHP;
+    }
+
+    public int getMaxEnergy() {
+        return maxEnergy;
+    }
+
+    /** Basic attack first, followed by perks in acquisition order. */
+    public List<Ability> getAbilities() {
+        List<Ability> abilities = new ArrayList<>();
+        abilities.add(character.basicAttack());
+        abilities.addAll(perks);
+        return List.copyOf(abilities);
+    }
+
     private boolean hasAbility(Ability ability) {
         return character.basicAttack().equals(ability) || perks.contains(ability);
     }
