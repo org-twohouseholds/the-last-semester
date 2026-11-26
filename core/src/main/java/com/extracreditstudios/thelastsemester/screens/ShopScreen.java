@@ -69,6 +69,16 @@ public class ShopScreen extends BaseScreen {
         offers.addAll(Arrays.asList(ALL_PERKS));
         Collections.shuffle(offers);
 
+
+        //removes any you already have
+        for(int i=0; i<2&&i<offers.size();){
+            if (game.doYouHaveThisAttack(offers.get(i))){
+                offers.remove(i);
+            } else {
+                i++;
+            }
+        }
+
         while (offers.size() > 2) {
             offers.remove(offers.size() - 1);
         }

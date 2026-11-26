@@ -34,6 +34,7 @@ public class TheLastSemesterGame extends Game {
         //setScreen(new HomeScreen(this));
         setScreen(new HomeScreen(this));
         //setScreen(new LoginScreen(this));
+        //gives you the basic attack
         unlockedAttacks.add(new Attack("Basic Attack", 10, 0));
     }
 
@@ -56,6 +57,10 @@ public class TheLastSemesterGame extends Game {
     public void resetAttacks() {
         unlockedAttacks.clear();
         unlockedAttacks.add(new Attack("Basic Attack", 20, 0));
+    }
+    //check if you have a certain attack
+    public boolean doYouHaveThisAttack(Attack a){
+        return unlockedAttacks.contains(a);
     }
 
     public Skin getSkin() {
