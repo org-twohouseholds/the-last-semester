@@ -32,7 +32,7 @@ public class CharacterInstance {
         this.activeEffects = new ArrayList<>();
     }
 
-    public void takeDamage(int amount) {
+    public void receiveDamage(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException("Damage must not be negative: " + amount);
         }
