@@ -55,7 +55,7 @@ public class TheLastSemesterGame extends Game {
     }
     public void resetAttacks() {
         unlockedAttacks.clear();
-        unlockedAttacks.add(new Attack("Basic Attack", 20, 10));
+        unlockedAttacks.add(new Attack("Basic Attack", 20, 0));
     }
 
     public Skin getSkin() {
