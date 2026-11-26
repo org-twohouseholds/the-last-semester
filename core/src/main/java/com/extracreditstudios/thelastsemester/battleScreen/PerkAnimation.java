@@ -145,10 +145,11 @@ public class PerkAnimation implements Disposable {
 
         projectile(teamMember1,target,Color.RED,0.2f,0.25f);
         projectile(teamMember2,target,Color.RED,0.35f,0.25f);
-        hit(target, damage, 0.55f);
+        hit(target, damage, 0.35f);
 
         for(Image tm : new Image[]{teamMember1, teamMember2}){
             tm.addAction(sequence(
+                delay(0.5f),
                 fadeOut(0.2f),
                 removeActor()
             ));
