@@ -1,0 +1,65 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  quality:
+    runs-on: self-hosted
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # Report-only: findings do not fail the build (ignoreFailures in build.gradle).
+      - name: Run Checkstyle and SpotBugs
+        run: >
+          ./gradlew
+          core:checkstyleMain lwjgl3:checkstyleMain server:app:checkstyleMain shared:checkstyleMain
+          core:spotbugsMain lwjgl3:spotbugsMain server:app:spotbugsMain shared:spotbugsMain
+          --continue
+
+      # Failing tests fail the build. Reports are still written (see the steps below).
+      - name: Run tests with coverage
+        run: >
+          ./gradlew
+          core:test lwjgl3:test server:app:test shared:test
+          --continue
+
+      - name: Write summary
+        if: always()
+        run: bash .github/scripts/test-summary.sh >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports
+          path: |
+            **/build/reports/checkstyle/
+            **/build/reports/spotbugs/
+            **/build/reports/jacoco/
+            **/build/reports/tests/
+            **/build/test-results/test/
+          if-no-files-found: warn

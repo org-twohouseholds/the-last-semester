@@ -1,0 +1,13 @@
+
+font_1.png
+size: 512, 512
+format: RGBA8888
+filter: Linear, Linear
+repeat: none
+PatrickHand-Regular
+  rotate: false
+  xy: 1, 421
+  size: 505, 83
+  orig: 505, 83
+  offset: 0, 0
+  index: -1

@@ -20,6 +20,7 @@ licences. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and
 - `core`: Main module with the application logic shared by all platforms.
 - `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
 - `android`: Android mobile platform. Needs Android SDK.
+- `shared`: Plain Java game logic and data model used by both client and server.
 
 ## Gradle
 

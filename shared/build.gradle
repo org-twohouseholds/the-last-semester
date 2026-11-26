@@ -1,0 +1,14 @@
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+eclipse.project.name = appName + '-shared'
+
+// Pure Java on purpose: this module is used by the Android client and by the server,
+// so it must not depend on libGDX, Android, Javalin or a database.
+dependencies {
+  testImplementation platform('org.junit:junit-bom:6.1.3')
+  testImplementation 'org.junit.jupiter:junit-jupiter'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+  useJUnitPlatform()
+}

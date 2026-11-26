@@ -8,7 +8,7 @@ buildscript {
   }
   dependencies {
     classpath "com.android.tools.build:gradle:8.9.3"
-
+    classpath "com.github.spotbugs.snom:spotbugs-gradle-plugin:6.5.13"
   }
 }
 
@@ -68,3 +68,47 @@ subprojects {
 }
 
 eclipse.project.name = 'The Last Semester' + '-parent'
+
+// Code quality reports (Checkstyle, SpotBugs, JaCoCo) for all Java modules.
+// Report-only for now: findings never fail the build.
+subprojects {
+  plugins.withId('java') {
+    apply plugin: 'checkstyle'
+    apply plugin: 'com.github.spotbugs'
+    apply plugin: 'jacoco'
+
+    checkstyle {
+      toolVersion = '11.1.0'
+      configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+      ignoreFailures = true
+      maxWarnings = Integer.MAX_VALUE
+    }
+
+    spotbugs {
+      ignoreFailures = true
+    }
+
+    tasks.withType(com.github.spotbugs.snom.SpotBugsTask).configureEach {
+      reports {
+        html.required = true
+      }
+    }
+
+    tasks.withType(Checkstyle).configureEach {
+      reports {
+        html.required = true
+        xml.required = true
+      }
+    }
+
+    tasks.named('jacocoTestReport') {
+      reports {
+        xml.required = true
+        html.required = true
+      }
+    }
+    tasks.named('test') {
+      finalizedBy tasks.named('jacocoTestReport')
+    }
+  }
+}
