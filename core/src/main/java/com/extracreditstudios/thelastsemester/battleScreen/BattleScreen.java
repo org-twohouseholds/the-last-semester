@@ -187,9 +187,9 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void finishBattle() {
+        game.addCP(10);
         if (players.length > 2) {
 
-            game.addCP(10);
 
             String[] nextPlayers = new String[players.length / 2];
 

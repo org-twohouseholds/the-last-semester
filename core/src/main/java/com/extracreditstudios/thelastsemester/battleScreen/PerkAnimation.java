@@ -130,22 +130,23 @@ public class PerkAnimation implements Disposable {
         for(Image tm : new Image[]{teamMember1, teamMember2}){
             tm.setBounds(attacker.getX(), attacker.getY(),
                 attacker.getWidth(), attacker.getHeight());
-            tm.setColor(1, 1, 0, 1f);
             tm.setTouchable(Touchable.disabled);
             stage.addActor(tm);
         }
 
         teamMember1.addAction(sequence(
-            moveBy(dir * 25f, 0f, 0.18f, Interpolation.pow2In)
+            moveBy(dir * 100f, 20f, 0.18f, Interpolation.pow2In)
         ));
 
         teamMember2.addAction(sequence(
-            moveBy(dir * 13f, 0f, 0.18f, Interpolation.pow2In)
+            moveBy(dir * 45f, 0-10f, 0.18f, Interpolation.pow2In)
             ));
 
-        projectile(teamMember1,target,Color.RED,0.2f,0.25f);
-        projectile(teamMember2,target,Color.RED,0.35f,0.25f);
-        hit(target, damage, 0.35f);
+        projectile(teamMember1,target,Color.RED,0.3f,0.15f);
+        projectile(teamMember2,target,Color.RED,0.3f,0.25f);
+        hit(teamMember1,0,0.25f);
+        hit(teamMember2,0,0.25f);
+        hit(target, damage, 0.55f);
 
         for(Image tm : new Image[]{teamMember1, teamMember2}){
             tm.addAction(sequence(
