@@ -1,6 +1,8 @@
 
 package com.extracreditstudios.thelastsemester.screens.lobby;
 
+import com.extracreditstudios.thelastsemester.battleScreen.BattleScreen;
+
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -16,6 +18,7 @@ import com.extracreditstudios.thelastsemester.TheLastSemesterGame;
 import com.extracreditstudios.thelastsemester.screens.BaseScreen;
 import com.extracreditstudios.thelastsemester.screens.DesignKit;
 import com.extracreditstudios.thelastsemester.screens.HomeScreen;
+import com.extracreditstudios.thelastsemester.screens.ShopScreen;
 
 public class TournamentScreen extends BaseScreen {
 
@@ -127,10 +130,11 @@ public class TournamentScreen extends BaseScreen {
         if (players.length >= 2) {
             TextButton btnNext = kit.button("->", "default");
 
+            //ShopScreen erst mal überspringen
             btnNext.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    nextRound();
+                    game.goTo(new BattleScreen(game, players));
                 }
             });
 

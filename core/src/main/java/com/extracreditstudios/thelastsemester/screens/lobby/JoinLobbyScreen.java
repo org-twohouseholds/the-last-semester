@@ -248,6 +248,9 @@ public class JoinLobbyScreen extends BaseScreen {
     private void startTournament() {
         tournamentStarted = true;
 
+        // Attacken für ein neues Turnier zurücksetzen
+        game.resetAttacks();
+
         String[] playerNames = new String[players.size];
 
         for (int i = 0; i < players.size; i++) {

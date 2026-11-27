@@ -7,11 +7,24 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.extracreditstudios.thelastsemester.screens.HomeScreen;
+import java.util.ArrayList;
+import java.util.List;
+import com.extracreditstudios.thelastsemester.battleScreen.Attack;
 
 public class TheLastSemesterGame extends Game {
 
     private Skin skin;
     private Preferences prefs;
+    private int cp = 0;
+    private final List<Attack> unlockedAttacks = new ArrayList<>();
+
+    public int getCP() {
+        return cp;
+    }
+
+    public void addCP(int amount) {
+        cp += amount;
+    }
 
     @Override
     public void create() {
@@ -21,6 +34,12 @@ public class TheLastSemesterGame extends Game {
         //setScreen(new HomeScreen(this));
         setScreen(new HomeScreen(this));
         //setScreen(new LoginScreen(this));
+        //gives you the basic attack
+        // feste attacken zum testen ohne shop
+        unlockedAttacks.add(new Attack("Basic Attack", 20, 0));
+        unlockedAttacks.add(new Attack("Coffee Rush", 60, 55));
+        unlockedAttacks.add(new Attack("Copy & Paste", 70, 80));
+        unlockedAttacks.add(new Attack("Group Project", 65, 70));
     }
 
     public void goTo(Screen next) {
@@ -31,6 +50,24 @@ public class TheLastSemesterGame extends Game {
                 old.dispose();
             }
         });
+    }
+    public void addAttack(Attack attack) {
+        unlockedAttacks.add(attack);
+    }
+
+    public List<Attack> getUnlockedAttacks() {
+        return unlockedAttacks;
+    }
+    public void resetAttacks() {
+        unlockedAttacks.clear();
+        unlockedAttacks.add(new Attack("Basic Attack", 20, 0));
+        unlockedAttacks.add(new Attack("Coffee Rush", 60, 55));
+        unlockedAttacks.add(new Attack("Copy & Paste", 70, 80));
+        unlockedAttacks.add(new Attack("Group Project", 65, 70));
+    }
+    //check if you have a certain attack
+    public boolean doYouHaveThisAttack(Attack a){
+        return unlockedAttacks.contains(a);
     }
 
     public Skin getSkin() {
