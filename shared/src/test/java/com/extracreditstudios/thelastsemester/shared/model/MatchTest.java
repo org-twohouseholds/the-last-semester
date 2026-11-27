@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
  */
 class MatchTest {
 
-    private final Ability attack = new Ability("Attack", 10, 0, 5, List.of());
-    private final Ability slowAttack = new Ability("Slow Attack", 10, 0, 3, List.of());
+    private final Ability attack = new Ability("Attack", 10, 0, 5, List.of(), "description", 2 );
+    private final Ability slowAttack = new Ability("Slow Attack", 10, 0, 3, List.of(), "description", 2 );
     private final EffectSystem effectSystem = new EffectSystem();
     private final static Player enrico = new Player("Enrico");
     private TournamentParticipation alice;
@@ -81,7 +81,7 @@ class MatchTest {
     // Danach ist der Kampf vorbei, Bob hat gewonnen und es wird nichts mehr angenommen.
     @Test
     void theFasterFighterWinsAndTheDefeatedOneDoesNotAct() {
-        Ability finisher = new Ability("Finisher", 100, 5, 9, List.of());
+        Ability finisher = new Ability("Finisher", 100, 5, 9, List.of(), "description", 2 );
         bob.getCharacter().addPerk(finisher);
 
         playTurn(attack, finisher);
@@ -136,7 +136,7 @@ class MatchTest {
     void anEffectActsExactlyAsLongAsItsDuration() {
         effectSystem.getRegistry().register(new Effect("Regen", "Heilt 5 nach jedem Angriff",
             EffectType.HEAL, EffectTiming.AFTER_ATTACK, 2, 5.0));
-        Ability rest = new Ability("Rest", 0, 0, 5, List.of("Regen"));
+        Ability rest = new Ability("Rest", 0, 0, 5, List.of("Regen"), "description", 2 );
         alice.getCharacter().addPerk(rest);
 
         playTurn(attack, slowAttack);

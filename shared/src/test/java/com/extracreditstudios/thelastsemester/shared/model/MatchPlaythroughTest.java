@@ -11,7 +11,6 @@ import com.extracreditstudios.thelastsemester.shared.model.effectsystem.EffectTi
 import com.extracreditstudios.thelastsemester.shared.model.effectsystem.EffectType;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,12 +21,12 @@ class MatchPlaythroughTest {
 
     private final EffectSystem effectSystem = new EffectSystem();
     private final Effect simpleHealEffect = new Effect("Basic Heal", "Dieser Effekt heilt dich einmalig um 8 Leben",EffectType.HEAL, EffectTiming.AFTER_ATTACK, 1, 8.0);
-    private final Ability simpleHealAbility = new Ability("Bier Trinken", 0, 0, 9, List.of(simpleHealEffect.getName()));
+    private final Ability simpleHealAbility = new Ability("Bier Trinken", 0, 0, 9, List.of(simpleHealEffect.getName()), "description", 2 );
 
-    private final Ability tippen = new Ability("Tippen", 10, 0, 6, List.of());
-    private final Ability exploit = new Ability("Exploit", 25, 15, 8, List.of());
-    private final Ability aussitzen = new Ability("Aussitzen", 8, 0, 4, List.of());
-    private final Ability altklausur = new Ability("Altklausur", 20, 10, 9, List.of());
+    private final Ability tippen = new Ability("Tippen", 10, 0, 6, List.of(), "description", 2 );
+    private final Ability exploit = new Ability("Exploit", 25, 15, 8, List.of(), "description", 2 );
+    private final Ability aussitzen = new Ability("Aussitzen", 8, 0, 4, List.of(), "description", 2 );
+    private final Ability altklausur = new Ability("Altklausur", 20, 10, 9, List.of(), "description", 2 );
 
     private final Player terence = new Player("Terence");
     private final Player kim = new Player("Kim");

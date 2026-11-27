@@ -72,6 +72,10 @@ public class Lobby {
         return tournament;
     }
 
+    public void removePlayer(Player player) {
+        playerList.remove(player);
+    }
+
     public void addPlayer(Player player){
         if(maxPlayers > playerList.size()){
             playerList.add(player);

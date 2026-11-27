@@ -13,8 +13,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class MatchStateTest {
-    private final Ability basic = new Ability("Basic", 10, 0, 5, List.of());
-    private final Ability perk = new Ability("Own Perk", 20, 5, 9, List.of());
+    private final Ability basic = new Ability("Basic", 10, 0, 5, List.of(), "description", 2 );
+    private final Ability perk = new Ability("Own Perk", 20, 5, 9, List.of(), "description", 2 );
     private final TournamentParticipation alice = fighter("Alice");
     private final TournamentParticipation bob = fighter("Bob");
     private final Match match = new Match(alice, bob, new EffectSystem());
@@ -56,7 +56,7 @@ class MatchStateTest {
         assertTrue(forAlice.lastTurnEvents().isEmpty());
         assertThrows(UnsupportedOperationException.class, () -> forAlice.myAbilities().clear());
 
-        alice.getCharacter().addPerk(new Ability("Later", 1, 0, 1, List.of()));
+        alice.getCharacter().addPerk(new Ability("Later", 1, 0, 1, List.of(), "description", 2 ));
         assertEquals(2, abilitiesBefore.size());
         assertEquals(2, forAlice.myAbilities().size());
         assertTrue(match.submitAbility(bob, basic));
@@ -98,7 +98,7 @@ class MatchStateTest {
         assertThrows(IllegalStateException.class, match::resolveTurn);
         assertEquals(0, match.getStateVersion());
 
-        Ability finisher = new Ability("Finisher", 100, 5, 9, List.of());
+        Ability finisher = new Ability("Finisher", 100, 5, 9, List.of(), "description", 2 );
         bob.getCharacter().addPerk(finisher);
         assertTrue(match.submitAbility(alice, basic));
         assertFalse(match.submitAbility(alice, basic));

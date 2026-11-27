@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 /** Ein Kämpfer allein: HP, Energie, Fähigkeiten und laufende Effekte. */
 class CharacterInstanceTest {
 
-    private final Ability attack = new Ability("Attack", 10, 0, 5, List.of());
+    private final Ability attack = new Ability("Attack", 10, 0, 5, List.of(), "description", 2 );
     private final EffectRegistry registry = new EffectRegistry();
     private CharacterInstance instance;
 
@@ -75,7 +75,7 @@ class CharacterInstanceTest {
     // Eine Fähigkeit benutzen kostet Energie (50 - 20 = 30).
     @Test
     void usingAnAbilityPaysItsEnergy() {
-        Ability perk = new Ability("Perk", 5, 20, 5, List.of());
+        Ability perk = new Ability("Perk", 5, 20, 5, List.of(), "description", 2 );
         instance.addPerk(perk);
         instance.useAbility(perk, registry);
         assertEquals(30, instance.getCurrentEnergy());
@@ -84,7 +84,7 @@ class CharacterInstanceTest {
     // Wenn die Energie nicht reicht, darf man die Fähigkeit nicht benutzen (Fehler).
     @Test
     void anAbilityWithoutEnoughEnergyCannotBeUsed() {
-        Ability expensive = new Ability("Expensive", 5, 51, 5, List.of());
+        Ability expensive = new Ability("Expensive", 5, 51, 5, List.of(),"description", 2 );
         instance.addPerk(expensive);
         assertFalse(instance.canUse(expensive));
         assertThrows(IllegalArgumentException.class,
@@ -94,7 +94,7 @@ class CharacterInstanceTest {
     // Energie-Gewinn gibt Energie, aber nie mehr als das Maximum. Die HP bleiben gleich.
     @Test
     void energyGainIsCappedAtMaxEnergy() {
-        Ability perk = new Ability("Perk", 5, 20, 5, List.of());
+        Ability perk = new Ability("Perk", 5, 20, 5, List.of(), "description", 2 );
         instance.addPerk(perk);
         instance.useAbility(perk, registry); // Energie 50 -> 30
 
