@@ -35,7 +35,11 @@ public class TheLastSemesterGame extends Game {
         setScreen(new HomeScreen(this));
         //setScreen(new LoginScreen(this));
         //gives you the basic attack
-        unlockedAttacks.add(new Attack("Basic Attack", 10, 0));
+        // feste attacken zum testen ohne shop
+        unlockedAttacks.add(new Attack("Basic Attack", 20, 0));
+        unlockedAttacks.add(new Attack("Coffee Rush", 60, 55));
+        unlockedAttacks.add(new Attack("Copy & Paste", 70, 80));
+        unlockedAttacks.add(new Attack("Group Project", 65, 70));
     }
 
     public void goTo(Screen next) {
@@ -57,6 +61,9 @@ public class TheLastSemesterGame extends Game {
     public void resetAttacks() {
         unlockedAttacks.clear();
         unlockedAttacks.add(new Attack("Basic Attack", 20, 0));
+        unlockedAttacks.add(new Attack("Coffee Rush", 60, 55));
+        unlockedAttacks.add(new Attack("Copy & Paste", 70, 80));
+        unlockedAttacks.add(new Attack("Group Project", 65, 70));
     }
     //check if you have a certain attack
     public boolean doYouHaveThisAttack(Attack a){

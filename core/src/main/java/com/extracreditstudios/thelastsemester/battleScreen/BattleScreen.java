@@ -139,8 +139,8 @@ public class BattleScreen extends ScreenAdapter {
 
         Fighter hackerFighter = new Fighter(new Attack[] {});
 
-        bitter.hp = 50;
-        bitter.energy = 100;
+       // bitter.hp = 50;
+        //bitter.energy = 100;
 
         battle = new Battle(bitter, hackerFighter);
     }
@@ -187,7 +187,8 @@ public class BattleScreen extends ScreenAdapter {
     }
 
     private void finishBattle() {
-        game.addCP(10);
+      // TournamentScreen zum testen entfernt
+      /*  game.addCP(10);
         if (players.length > 2) {
 
 
@@ -200,7 +201,7 @@ public class BattleScreen extends ScreenAdapter {
             game.goTo(new TournamentScreen(game, nextPlayers));
 
         } else {
-
+*/
             boolean isUserWinner = true;
             String winnerName = players[0];
             int earnedPoints = 30;
@@ -212,7 +213,7 @@ public class BattleScreen extends ScreenAdapter {
                 earnedPoints
             ));
         }
-    }
+
 
     // updates all UI elements with current battle data
     private void updateUi() {

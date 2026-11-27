@@ -130,10 +130,11 @@ public class TournamentScreen extends BaseScreen {
         if (players.length >= 2) {
             TextButton btnNext = kit.button("->", "default");
 
+            //ShopScreen erst mal überspringen
             btnNext.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
-                    game.goTo(new ShopScreen(game, players));
+                    game.goTo(new BattleScreen(game, players));
                 }
             });
 
